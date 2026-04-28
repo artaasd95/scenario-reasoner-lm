@@ -1,0 +1,64 @@
+{
+  "experiment_name": "scenario_reasoner_baseline",
+  "project": "scenario-reasoner-lm",
+  "seed": 42,
+
+  "model": {
+    "name_or_path": "YOUR_MODEL_NAME_OR_PATH",
+    "max_length": 512,
+    "type": "causal_lm"
+  },
+
+  "dataset": {
+    "source": "huggingface",
+    "name": "YOUR_DATASET_NAME",
+    "split_train": "train",
+    "split_val": "validation",
+    "input_field": "question",
+    "label_field": "answer"
+  },
+
+  "training": {
+    "num_epochs": 3,
+    "batch_size": 16,
+    "learning_rate": 1e-4,
+    "weight_decay": 0.01,
+    "warmup_steps": 100,
+    "max_grad_norm": 1.0,
+    "gradient_accumulation_steps": 1,
+    "save_steps": 500,
+    "eval_steps": 500
+  },
+
+  "loss": {
+    "type": "token_level",
+    "reduction": "mean",
+    "ignore_index": -100
+  },
+
+  "monitoring": {
+    "cot": {
+      "enabled": true,
+      "log_every": 50
+    },
+    "tot": {
+      "enabled": true,
+      "log_every": 50
+    },
+    "aha": {
+      "enabled": true,
+      "log_every": 50
+    }
+  },
+
+  "logging": {
+    "local": {
+      "enabled": true,
+      "log_dir": "./logs"
+    },
+    "wandb": {
+      "enabled": false,
+      "project": "scenario-reasoner-lm"
+    }
+  }
+}
