@@ -1,0 +1,221 @@
+# =============================================================================
+# SENSITIVE CONFIGURATION FILES
+# =============================================================================
+
+.env
+.env.local
+.env.production
+.env.staging
+.env.development
+.env.backup
+.env.bak
+.env.orig
+
+# =============================================================================
+# TEMPORARY DIRECTORIES AND FILES
+# =============================================================================
+
+temp_repos/
+temp/
+tmp/
+
+*.log
+logs/
+
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# =============================================================================
+# PYTHON SPECIFIC
+# =============================================================================
+
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+PIPFILE.lock
+
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# =============================================================================
+# IDE AND EDITOR FILES
+# =============================================================================
+
+.vscode/
+*.code-workspace
+.idea/
+.ipynb_checkpoints
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =============================================================================
+# OPERATING SYSTEM FILES
+# =============================================================================
+
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# HUGGING FACE / ML SPECIFIC
+# =============================================================================
+
+.cache/
+cache/
+models_cache/
+downloaded_models/
+wandb/
+runs/
+checkpoints/
+outputs/
+
+# =============================================================================
+# BACKUP AND TEMPORARY FILES
+# =============================================================================
+
+*.bak
+*.backup
+*.orig
+*.tmp
+*.temp
+*.temporary
+
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# =============================================================================
+# SECURITY AND CREDENTIALS
+# =============================================================================
+
+*.pem
+*.key
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+*.crt
+*.cert
+*.cer
+*.p12
+*.pfx
+api_keys.txt
+tokens.txt
+credentials.json
+secrets.json
+
+# =============================================================================
+# EXPERIMENT AND DATA FILES
+# =============================================================================
+
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+experiments/results/*
+!experiments/results/.gitkeep
+
+# =============================================================================
+# DOCUMENTATION BUILDS
+# =============================================================================
+
+docs/_build/
+/site
+
+# =============================================================================
+# PACKAGE MANAGERS
+# =============================================================================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.conda/
+
+# =============================================================================
+# COVERAGE AND TESTING
+# =============================================================================
+
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# =============================================================================
+# MISC
+# =============================================================================
+
+*.mo
+*.pot
+*.sage.py
+.spyderproject
+.spyproject
+.ropeproject
+.mypy_cache/
+.dmypy.json
+dmypy.json
