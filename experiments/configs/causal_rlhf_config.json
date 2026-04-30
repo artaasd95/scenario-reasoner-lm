@@ -1,0 +1,58 @@
+{
+  "_comment": "Causal/counterfactual RLHF training configuration for Scenario Reasoner LM.",
+
+  "experiment_name": "causal_rlhf_run_01",
+  "project": "scenario-reasoner-lm",
+
+  "model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.2",
+  "use_qlora": true,
+  "lora_r": 16,
+  "lora_alpha": 32,
+  "lora_dropout": 0.05,
+  "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj"],
+  "device_map": "auto",
+
+  "max_seq_length": 2048,
+  "max_prompt_length": 1024,
+
+  "batch_size": 4,
+  "gradient_accumulation": 8,
+  "learning_rate": 1e-4,
+  "num_epochs": 3,
+  "lr_scheduler": "cosine",
+  "warmup_ratio": 0.1,
+  "bf16": true,
+  "fp16": false,
+  "optimizer": "paged_adamw_8bit",
+  "logging_steps": 10,
+  "save_steps": 100,
+
+  "dpo_beta": 0.1,
+
+  "reward_weights": {
+    "alpha_cot": 0.15,
+    "beta_tot": 0.10,
+    "gamma_aha": 0.05
+  },
+
+  "scenario": {
+    "chain_lengths": [3, 5],
+    "intervention_types": ["direct", "counterfactual"],
+    "domains": ["physical", "social"],
+    "difficulties": ["easy", "medium"],
+    "n_per_combo": 200
+  },
+
+  "preference_builder": {
+    "num_samples": 4,
+    "temperature": 0.8,
+    "max_new_tokens": 512
+  },
+
+  "data": {
+    "train_frac": 0.9,
+    "seed": 42
+  },
+
+  "output_dir": "experiments/results/causal_rlhf_run_01"
+}
