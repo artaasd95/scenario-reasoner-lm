@@ -31,7 +31,11 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import sys
 from pathlib import Path
+
+# Ensure project root is on sys.path when the script is run directly.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 logger = logging.getLogger(__name__)
 
@@ -129,5 +133,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
+    import sys as _sys
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s  %(message)s",
+        stream=_sys.stdout,
+    )
     main()
