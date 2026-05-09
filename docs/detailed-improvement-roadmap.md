@@ -9,6 +9,112 @@ Goals:
 - Define a phased, execution-ready improvement map.
 - Specify actions, file-level impact, tests, acceptance criteria, and sequencing.
 - Provide project-management visibility for delivery planning and risk control.
+- **Portfolio lens:** separate a credible public repo from a **hire-me** signal—reproducible benchmark numbers, a defensible “why this wins,” and minimal scope creep.
+
+---
+
+## Portfolio Strategy: “Good Portfolio” vs “Hire Me Immediately”
+
+Use this split to decide **what to build next**. The default should be **fewer surface features** and **more defensible measurements**. Extra modules do not beat a single sharp result with a clear story.
+
+### Good portfolio (credible, professional)
+
+**What a reviewer sees:** clean structure, tests, README that runs, honest limitations.
+
+| Dimension | Target |
+|-----------|--------|
+| Repo hygiene | README with install + one command that produces an artifact (log, JSON report, or notebook output). |
+| Honesty | Explicit scope: causal scenario training/eval, not “general AGI reasoning.” |
+| Evidence | At least **one** fixed evaluation protocol (same prompts, same decoding, same seed) with **reported numbers** (even if only on internal/synthetic scenarios first). |
+| Reproducibility | Pinned dependencies or lockfile note; config JSON checked in; “how to rerun” in docs. |
+| Story | One paragraph: **problem → method → what you measured → outcome.** |
+
+**Acceptance (portfolio bar):** A stranger can clone, run tests, run eval (or smoke eval), and read one table of metrics without trusting your prose alone.
+
+### Hire me immediately (differentiated, interview-ready)
+
+**What a strong hiring manager sees:** **numbers on named benchmarks**, comparison to **stated baselines**, and **why your approach should win** under those constraints—not a longer feature list.
+
+| Dimension | Target |
+|-----------|--------|
+| Benchmark claim | **1–2 public benchmarks maximum** for the primary claim (e.g. one causal/logical suite you can defend end-to-end). Depth beats breadth. |
+| SOTA framing | **Match or beat** a clearly defined baseline under a **declared budget**: same or comparable base model class, training data scale, inference budget (tokens/decoding), and eval script. |
+| Reproducibility contract | Frozen `experiments/configs/*`, commit hash, hardware note, seeds, exact eval command, and **artifact** (JSON report + optional W&B run id). |
+| “Why us” | A short, falsifiable thesis (see template below): what inductive bias or training signal you add, and **why** it should improve **that** metric on **that** benchmark. |
+| Ablations | **2–3** minimal ablations (e.g. reward off, monitors off, DPO off) on the **same** eval—table in README or `docs/results/`. |
+| Optional arXiv / tech report | Use when the story needs **citations, related work, and exact protocol** for skeptical readers—not as a substitute for runnable code. |
+
+**Acceptance (hire-me bar):** README opens with a **results table** (metric, baseline, yours, Δ, setup). A reviewer can rerun eval and get numbers within a documented tolerance. You can explain **why** you win or **why** you tied without hand-waving.
+
+### Anti-goals (portfolio mode)
+
+- Adding “Phase 4” breadth (many strategies, many domains) **before** a single benchmark row is reproducible and explained.
+- Claiming SOTA without naming **dataset, split, metric, model, and decoding**.
+- Treating more files as progress; **more graphs in one PDF** beats more Python modules.
+
+---
+
+## Evidence Stack: What You Ship (Not What You Code)
+
+Prioritize deliverables that fit on a resume line and in an interview.
+
+| Artifact | Purpose | Hire-me acceptance |
+|----------|---------|-------------------|
+| **Results table** in README | First screen impression | ≥2 rows: baseline + yours; same metric definitions |
+| **Frozen eval config + one command** | Trust | Documented command reproduces table within stated variance |
+| **Robustness / θ breakdown** (existing evaluator) | “I measure more than accuracy” | One figure or JSON slice: performance vs. scenario parameters |
+| **Ablation mini-table** | Proves the method, not the repo size | Same benchmark; only one knob changes per row |
+| **Short technical note** (`docs/technical-note.md`) or **arXiv** | Defensible “why” + related work | Problem, method, experiments, limitations—no marketing |
+
+**Rule:** If it does not improve a **number** in the table or the **clarity** of “why,” defer it.
+
+---
+
+## Benchmark and SOTA Contract (Defensible Comparisons)
+
+### Picking the claim
+
+1. **Primary benchmark (1):** The one your README headline uses (e.g. one external causal/logical dataset fully wired, or a published-style subset with clear license).
+2. **Secondary (optional):** Only if it strengthens the same story (e.g. robustness slice), not a second unrelated brag.
+
+### Baselines (required for “hire me”)
+
+For each baseline row, document **all** of:
+
+- Base model id and revision
+- Fine-tuning recipe (SFT / DPO / none) and data scale
+- Decoding: temperature, max tokens, stop sequences
+- Metric definition (exact match, F1, custom causal metric—spell it out)
+
+**Better than vague SOTA:** “We compare to **[named method]** on **[named split]** using **[metric]** because **[reason]**.” Tying or beating a **reproduced** baseline you own is stronger than an unverifiable leaderboard screenshot.
+
+### The “why we win” template (README + interviews)
+
+Fill this in once; reuse everywhere:
+
+1. **Structural assumption:** What structure do you inject (e.g. θ-conditioned scenarios, rule-based reward shaping, monitor-augmented preferences)?
+2. **Mechanism:** How that changes the training signal or the optimization landscape.
+3. **Prediction:** What should improve first (e.g. counterfactual validity under intervention type X)?
+4. **Result:** Point to the row in the table and the ablation that isolates the mechanism.
+
+If (3) and (4) do not align, fix the claim—not the adjective.
+
+---
+
+## Optional: arXiv / Technical Report Path
+
+Use when you need a **single citable PDF** for recruiters, collaborators, or follow-up interviews—not as extra feature work.
+
+**Minimum viable report (4–6 pages):**
+
+1. **Abstract:** One sentence result + one sentence method.
+2. **Setup:** Benchmark, splits, metrics, baselines, compute.
+3. **Method:** Scenario parameterization (θ), reward/DPO/monitoring—only what you actually run.
+4. **Results:** Main table + robustness + ablations.
+5. **Limitations:** Where the method fails; no SOTA without caveats.
+6. **Reproducibility:** Exact command, config path, commit hash.
+
+**Hire-me check:** Someone can read only the abstract and the main table and still understand the contribution.
 
 ---
 
@@ -85,6 +191,7 @@ Goals:
 - Treat monitors as first-class reward/evaluation signals only after measurement reliability is validated.
 - Add formal verification incrementally with graph constraints before model checking tools.
 - Defer speculative domains (legal/scientific/multi-agent) until core benchmark and reliability gates are passing.
+- **Portfolio:** Prefer **one benchmark headline + ablations** over parallel feature tracks; ship the **evidence stack** (table, config, rerun command) before expanding code surface.
 
 ---
 
@@ -110,6 +217,7 @@ Goals:
   - Documentation updated (`README.md` and relevant docs).
   - Passes CI test workflow.
   - Acceptance criteria in this roadmap satisfied.
+- **Portfolio Definition of Done (hire-me track):** Any change that touches training or eval also updates (or explicitly defers) the **README results table**, **baseline row**, and **repro command**—not only internal code.
 
 ### Suggested ownership
 
@@ -123,7 +231,21 @@ Goals:
 
 ## Phase Plan and Detailed Action Map
 
+**Portfolio mapping (summary):**
+
+| Phase | Primary portfolio outcome |
+|-------|---------------------------|
+| Phase 0 | **Good portfolio:** repo runs; eval artifact exists. |
+| Phase 1 | **Hire-me core:** named benchmark(s), baselines, results table. |
+| Phase 2 | **Hire-me depth:** robustness + quality metrics that support the “why.” |
+| Phase 3 | **Trust:** CI + reproducibility = defensible numbers. |
+| Phase 4 | **Optional:** only if needed to **match a specific SOTA claim**—not default. |
+
+---
+
 ## Phase 0 - Stabilize Runtime Foundations (Weeks 1-2)
+
+**Portfolio tier:** Good portfolio (prerequisite for any numeric claim).
 
 ### Objective
 
@@ -182,18 +304,21 @@ Make train/evaluate workflows executable and test-protected.
 - `scripts/evaluate.py` produces `robustness_report.json` with aggregate metrics.
 - No duplicate entrypoint blocks in train script.
 - New tests pass locally: `pytest tests/unit tests/integration`.
+- **Portfolio:** Document one command in README that produces a **saved metric artifact** (path named explicitly).
 
 ---
 
 ## Phase 1 - Evaluation and Benchmark Baseline (Weeks 3-6)
 
+**Portfolio tier:** Hire-me immediately (primary); this phase is where the **resume line** is earned.
+
 ### Objective
 
-Create reliable performance baselines across internal and external reasoning datasets.
+Create reliable performance baselines across internal and external reasoning datasets—**optimized for one sharp headline benchmark**, not maximum adapter count.
 
 ### Actions
 
-1) Add benchmark adapters with unified schema
+1) Add benchmark adapters with unified schema (**portfolio constraint:** ship adapters **only** for the benchmark(s) named in the README headline—typically **one** primary; add a second only after the main table is stable).
 - New module:
   - `src/data/benchmarks/`
     - `babi.py`
@@ -207,6 +332,7 @@ Create reliable performance baselines across internal and external reasoning dat
     - `reasoning_trace` (optional)
     - `output`
     - `metadata` (dataset name, split, difficulty)
+  - Treat unused adapter stubs as **out of scope** until the hire-me row is filled.
 
 2) Extend evaluate script for benchmark mode
 - File:
@@ -237,14 +363,18 @@ Create reliable performance baselines across internal and external reasoning dat
 - Each benchmark adapter loads a fixture sample and maps to normalized schema.
 - Evaluate script can run with at least one external benchmark.
 - Report includes aggregate and stratified sections.
+- **Hire-me:** README (or `docs/results/`) contains a **table**: metric name, baseline value, your value, Δ, and footnoted setup (model, decoding, split).
+- **Hire-me:** “Why we win” paragraph uses the template in [Benchmark and SOTA Contract](#benchmark-and-sota-contract-defensible-comparisons)—no new features required, only honest alignment of claim and numbers.
 
 ---
 
 ## Phase 2 - Verification and Quality Controls (Weeks 7-10)
 
+**Portfolio tier:** Hire-me depth—supports **trust** in the headline numbers (robustness, failure modes).
+
 ### Objective
 
-Raise reasoning reliability with explicit consistency checks and quality metrics.
+Raise reasoning reliability with explicit consistency checks and quality metrics—**only in service of the benchmark story** (e.g. counterfactual validity if that is your thesis).
 
 ### Actions
 
@@ -285,10 +415,13 @@ Raise reasoning reliability with explicit consistency checks and quality metrics
 - Verifier flags at least one synthetic inconsistent trace and passes a valid trace.
 - New metrics are available through metric registry.
 - Reward composer can include verifier signal without breaking training flow.
+- **Portfolio:** At least one **ablation row** in the main results narrative (e.g. reward component off) tied to a **predicted** axis of improvement.
 
 ---
 
 ## Phase 3 - Operations and Reproducibility (Weeks 11-12)
+
+**Portfolio tier:** Hire-me—**reproducibility is the difference** between “interesting repo” and “I believe these results.”
 
 ### Objective
 
@@ -327,14 +460,17 @@ Establish merge-safe and experiment-reproducible engineering practices.
 - Pull requests require CI pass before merge.
 - Re-running same config/seed yields reproducible report envelope (within tolerance).
 - Runbook can be followed by a new contributor end-to-end.
+- **Hire-me:** Results table cites **config file path + commit** (or release tag) used to generate published numbers.
 
 ---
 
 ## Phase 4 - Advanced Reasoning Strategy Expansion (Weeks 13+)
 
+**Portfolio tier:** **Optional / conditional.** Enter this phase only if a **specific SOTA or reviewer request** requires an extra decoding or search strategy **and** Phases 0–3 already support a headline table. Otherwise **stop at Phase 3** and write the technical note or arXiv instead.
+
 ### Objective
 
-Move from monitoring-only strategy detection to active multi-strategy reasoning.
+Move from monitoring-only strategy detection to active multi-strategy reasoning—**minimal additions**, each justified by a **pre-registered** ablation hypothesis.
 
 ### Actions
 
@@ -368,23 +504,26 @@ Move from monitoring-only strategy detection to active multi-strategy reasoning.
 - At least two active reasoning strategies are executable from config.
 - Ablation report compares strategy-level outcomes on same data slice.
 - Strategy behavior is measurable via existing monitors and metrics.
+- **Portfolio gate:** Phase 4 merges only with a **pre-written** one-line hypothesis and a **filled row** in the ablation table; otherwise defer.
 
 ---
 
 ## Prioritized Backlog (Execution Order)
 
+**Portfolio-first ordering:** items that unlock **numbers and narrative** before items that expand **code surface**.
+
 1. P0: Fix `train.py` runtime correctness and logger API usage.
 2. P0: Fix `evaluate.py` logger API usage and reporting stability.
 3. P0: Resolve theta typing compatibility in reward path.
 4. P0: Add train/eval smoke integration tests.
-5. P1: Refresh docs (`README.md`, `PROJECT_STRUCTURE.md`) to current architecture.
-6. P1: Implement benchmark adapters and benchmark evaluation mode.
-7. P1: Add reporting module and richer stratified outputs.
-8. P1: Implement verification module and wire into evaluation.
-9. P2: Add hallucination/calibration metrics.
-10. P2: Add CI workflow and runbook/repro governance.
-11. P3: Implement active multi-strategy reasoning modules and ablation.
-12. P3: Explore formal-method bridges and domain expansions.
+5. P0 (**hire-me**): Draft README **results table shell** (metric names, TBD cells) and **baseline definition** so work stays measurement-driven.
+6. P1: Refresh docs (`README.md`, `PROJECT_STRUCTURE.md`) to current architecture.
+7. P1: Implement **one** primary benchmark adapter + eval path end-to-end (second benchmark only after first table is stable).
+8. P1: Add reporting module and richer stratified outputs **as needed for the headline claim**.
+9. P1: Write **short technical note** (`docs/technical-note.md`) outline: thesis, protocol, limitations—can later become arXiv.
+10. P2: Add verification/metrics **only** if they appear in the public table or the “why” paragraph.
+11. P2: CI workflow and runbook/repro governance.
+12. P3: Phase 4 strategies / formal-method bridges—**only** with ablation justification; deprioritize domain expansion for resume impact.
 
 ---
 
@@ -406,18 +545,21 @@ Move from monitoring-only strategy detection to active multi-strategy reasoning.
 - Phase 0:
   - Train/eval script success rate: 100 percent on smoke path.
   - Runtime method errors: 0.
+  - **Portfolio:** One documented path from clone to **numeric artifact**.
 - Phase 1:
-  - External benchmark coverage: at least 2 adapters enabled.
-  - Per-dataset reporting completeness: 100 percent.
+  - **Primary benchmark:** 1 adapter + eval path complete; **secondary** optional.
+  - README (or `docs/results/`) contains **≥2 numeric rows** (baseline + yours) for the same metric definition.
+  - Per-dataset reporting completeness for **benchmarks you claim** in the headline: 100 percent.
 - Phase 2:
-  - Consistency violation detection precision/recall on synthetic fixtures: defined and tracked.
-  - Calibration/hallucination metrics present in reports.
+  - Consistency violation detection precision/recall on synthetic fixtures: defined and tracked **if** cited publicly.
+  - Calibration/hallucination metrics present in reports **only if** in the hire-me table or note.
 - Phase 3:
   - CI pass rate and mean time to detect regressions tracked.
   - Reproducibility checks green for fixed seeds.
+  - **Hire-me:** Published numbers traceable to **config + commit**.
 - Phase 4:
-  - Strategy ablation report generated per release candidate.
-  - Improvement over baseline metrics demonstrated for at least one strategy.
+  - Strategy ablation report generated per release candidate **if** Phase 4 is active.
+  - Improvement over baseline metrics demonstrated for at least one strategy **with** a stated mechanism; otherwise skip Phase 4.
 
 ---
 
@@ -428,6 +570,7 @@ Move from monitoring-only strategy detection to active multi-strategy reasoning.
 - Test plan includes unit and at least one integration path.
 - Acceptance criteria are explicit and measurable.
 - Rollback path is defined for pipeline-impacting changes.
+- **Portfolio:** For training/eval/reward changes, specify **which benchmark row** or **which sentence of the “why”** the change is meant to move; if none, defer.
 
 ---
 
@@ -436,5 +579,6 @@ Move from monitoring-only strategy detection to active multi-strategy reasoning.
 1) Implement and merge Phase 0 fixes.
 2) Add smoke tests and make them pass in CI (or local gate if CI not yet added).
 3) Refresh docs to remove stale scaffold statements.
-4) Open backlog issues for Phase 1 benchmark and reporting modules with this roadmap as reference.
+4) Create the **README results table skeleton** and **benchmark + baseline contract** (names, metrics, setup)—then scope Phase 1 adapters to that contract only.
+5) Optionally: start `docs/technical-note.md` (or arXiv outline) in parallel so the story and the code stay aligned.
 
