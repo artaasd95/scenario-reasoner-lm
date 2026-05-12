@@ -5,6 +5,22 @@ structured causal and counterfactual scenarios. The repository includes scenario
 generation, datasets, metrics, reward composition, DPO training scaffolding,
 robustness evaluation, monitoring, and experiment logging.
 
+## Strategic Direction
+
+The long-term showcase direction is to package this foundation as an
+**Enterprise Risk Scenario Generator**: a system that ingests a 10-K financial
+filing, extracts risk evidence, and generates five source-grounded catastrophic
+risk scenarios with auditable reasoning traces.
+
+The current codebase provides the causal scenario, reward, monitoring, training,
+and robustness-evaluation substrate. The next product layer should add 10-K
+ingestion, DSPy reasoning modules and optimizers, Langfuse white-box traces, a
+simple Streamlit or Gradio UI, Dockerized environments, and a focused demo path.
+
+See [Enterprise Risk Scenario Generator Roadmap](docs/enterprise-risk-showcase-roadmap.md)
+for the current-state audit, target architecture, sprint plan, and showcase
+criteria.
+
 ## Getting Started
 
 ```bash
