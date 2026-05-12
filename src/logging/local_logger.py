@@ -76,6 +76,7 @@ class LocalLogger:
             self._python_logger.addHandler(console_handler)
 
         self._metrics_fh = open(str(self._metrics_file), "a", encoding="utf-8")
+        self._closed = False
 
     def log_config(self, config: Dict[str, Any]) -> None:
         """
@@ -163,11 +164,15 @@ class LocalLogger:
 
     def close(self) -> None:
         """Flush and close all log file handles."""
+        if self._closed:
+            return
+
         self._metrics_fh.flush()
         self._metrics_fh.close()
         for handler in list(self._python_logger.handlers):
             handler.close()
             self._python_logger.removeHandler(handler)
+        self._closed = True
 
     def _write_record(self, record: Dict[str, Any]) -> None:
         """Write a JSONL record to the metrics file."""

@@ -18,9 +18,11 @@ Scoring components (weights sum to 1):
 from __future__ import annotations
 
 import re
-from typing import Optional
+from typing import Any, Mapping, Optional, Union
 
 from src.scenarios.causal.taxonomy import CausalTheta
+
+ThetaLike = Union[CausalTheta, Mapping[str, Any]]
 
 
 class CausalRewardFunction:
@@ -93,7 +95,7 @@ class CausalRewardFunction:
         trace: str,
         answer: str,
         expected_answer: Optional[str] = None,
-        theta: Optional[CausalTheta] = None,
+        theta: Optional[ThetaLike] = None,
     ) -> float:
         """
         Compute ``R_task ∈ [0, 1]`` for a single ``(prompt, trace, answer)`` triple.
@@ -103,8 +105,9 @@ class CausalRewardFunction:
             trace: The model's reasoning trace output.
             answer: The model's final answer output.
             expected_answer: Ground-truth answer string (optional).
-            theta: :class:`CausalTheta` used to generate the scenario (optional).
-                   When provided, sub-scorers use it for domain-specific checks.
+            theta: :class:`CausalTheta` or dict used to generate the scenario
+                   (optional). When provided, sub-scorers use it for
+                   domain-specific checks.
 
         Returns:
             Scalar task reward in ``[0, 1]``.
@@ -127,14 +130,14 @@ class CausalRewardFunction:
     def _chain_completeness(
         self,
         trace: str,
-        theta: Optional[CausalTheta],
+        theta: Optional[ThetaLike],
     ) -> float:
         """Score how completely the trace covers required reasoning steps."""
         steps_found = len(self._STEP_RE.findall(trace))
         has_conclusion = bool(self._CONCLUSION_RE.search(trace))
 
         if theta is not None:
-            expected_steps = theta.chain_length
+            expected_steps = self._theta_value(theta, "chain_length", 2)
             step_ratio = min(steps_found / max(expected_steps, 1), 1.0)
         else:
             step_ratio = min(steps_found / 2, 1.0)
@@ -158,7 +161,7 @@ class CausalRewardFunction:
         self,
         trace: str,
         answer: str,
-        theta: Optional[CausalTheta],
+        theta: Optional[ThetaLike],
     ) -> float:
         """
         For counterfactual/confounded scenarios, verify the trace addresses the
@@ -166,7 +169,8 @@ class CausalRewardFunction:
 
         Returns ``1.0`` for direct-chain scenarios (not applicable).
         """
-        if theta is None or theta.intervention_type == "direct":
+        intervention_type = self._theta_value(theta, "intervention_type", "direct")
+        if intervention_type == "direct":
             return 1.0
 
         combined = (trace + " " + answer).lower()
@@ -177,6 +181,19 @@ class CausalRewardFunction:
             or self._NOT_OCCUR_RE.search(answer)
         )
         return 0.5 * float(addresses_intervention) + 0.5 * float(has_clear_answer)
+
+    @staticmethod
+    def _theta_value(
+        theta: Optional[ThetaLike],
+        field: str,
+        default: Any,
+    ) -> Any:
+        """Read theta fields from either a CausalTheta object or dataset dict."""
+        if theta is None:
+            return default
+        if isinstance(theta, Mapping):
+            return theta.get(field, default)
+        return getattr(theta, field, default)
 
     def _answer_correctness(
         self,

@@ -141,7 +141,7 @@ def main() -> None:
 
     # ── Log aggregate metrics ─────────────────────────────────────────────────
     aggregate = report.get("aggregate", {})
-    local_logger.log_metrics(aggregate, step=0)
+    local_logger.log_step(step=0, metrics=aggregate, prefix="eval")
 
     logger.info("Aggregate metrics:")
     for metric_name, value in aggregate.items():

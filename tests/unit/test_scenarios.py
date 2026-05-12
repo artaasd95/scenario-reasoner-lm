@@ -300,6 +300,22 @@ class TestCausalRewardFunction:
                                      theta=cf_theta)
         assert score_good > score_bad
 
+    def test_dict_theta_uses_counterfactual_fields(self, reward_fn, cf_theta):
+        dict_theta = cf_theta.to_dict()
+        cf_trace_good = (
+            "Step 1: Without unemployment, the chain is broken.\n"
+            "Therefore, housing insecurity would NOT occur. No."
+        )
+        cf_trace_bad = (
+            "Step 1: unemployment leads to housing insecurity.\n"
+            "Therefore, housing insecurity."
+        )
+
+        score_good = reward_fn.score("p", cf_trace_good, "No.", theta=dict_theta)
+        score_bad = reward_fn.score("p", cf_trace_bad, "Yes.", theta=dict_theta)
+
+        assert score_good > score_bad
+
 
 # ── RewardComposer tests ──────────────────────────────────────────────────────
 
