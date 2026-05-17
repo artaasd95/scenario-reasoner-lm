@@ -1,0 +1,65 @@
+ACME CORPORATION
+FORM 10-K — FISCAL YEAR ENDED DECEMBER 31, 2025
+
+## Business Overview
+
+ACME Corporation manufactures industrial automation controllers and cloud-connected
+edge gateways. Approximately 62% of revenue derives from North American automotive
+and semiconductor capital equipment customers. We depend on three contract manufacturers
+in Malaysia, Vietnam, and Mexico for final assembly.
+
+## Risk Factors
+
+We face substantial concentration risk: our top five customers accounted for 48% of
+net revenue in fiscal 2025. Loss of any major customer could materially harm results.
+
+Our products incorporate custom ASICs sourced from a single foundry partner in Taiwan.
+Geopolitical tension, export controls, or natural disasters affecting that region could
+interrupt supply for six months or longer.
+
+We rely on a legacy ERP platform hosted in a single U.S. data center. A prolonged
+outage could delay order fulfillment and financial close processes.
+
+Foreign exchange fluctuations, particularly USD versus MYR and TWD, may reduce gross
+margin when we cannot pass through cost increases.
+
+## Management's Discussion and Analysis
+
+Gross margin declined 310 basis points year-over-year due to input cost inflation and
+expedited freight. Management implemented a 12% headcount reduction in Q3 2025 but
+maintains elevated R&D spend for next-generation safety-certified controllers.
+
+Liquidity remains adequate with $420M cash, but covenant headroom under our revolving
+credit facility narrows if EBITDA falls below $180M for two consecutive quarters.
+
+## Legal Proceedings
+
+The SEC is investigating our revenue recognition practices for multi-year service bundles
+sold in 2023–2024. We cannot predict timing or outcome; adverse findings could require
+restatement and trigger customer contract renegotiations.
+
+A class action alleging misleading statements about supply chain resilience was filed
+in the Northern District of California in January 2026.
+
+## Cybersecurity
+
+In November 2025 we detected unauthorized access to a staging environment containing
+non-production customer telemetry. Forensics are ongoing. We have not determined whether
+production systems or personally identifiable information were affected.
+
+We are enhancing zero-trust network segmentation and MFA coverage for privileged accounts.
+
+## Regulatory Exposure
+
+New EU machinery regulation (EU) 2023/1230 requires additional functional safety
+documentation by March 2027. Non-compliance could block shipments to European OEMs
+representing 19% of revenue.
+
+U.S. CHIPS Act incentives require domestic content thresholds we may not meet without
+requalifying suppliers.
+
+## Supply Chain Dependencies
+
+Critical passive components and power modules are sole-sourced from two Japanese vendors.
+Lead times extended from 14 to 38 weeks during fiscal 2025. We hold 90 days of safety
+stock for tier-1 SKUs but not for legacy platforms scheduled for end-of-life in 2026.

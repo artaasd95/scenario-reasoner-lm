@@ -1,0 +1,24 @@
+{
+  "title": "Test catastrophic supply disruption",
+  "source_evidence": [
+    {
+      "section_name": "Risk Factors",
+      "chunk_id": "acme_corp_10k:Risk Factors:0",
+      "source_span": "chars:100-400",
+      "quote_text": "Our products incorporate custom ASICs sourced from a single foundry partner in Taiwan."
+    }
+  ],
+  "causal_chain": [
+    "Foundry region faces export controls",
+    "ASIC supply halts for six months",
+    "Production stops for major customers"
+  ],
+  "missed_risk_rationale": "Filing notes sole-source ASIC but not customer penalty exposure.",
+  "severity": "catastrophic",
+  "likelihood": "medium",
+  "horizon": "6-18 months",
+  "confidence": 0.75,
+  "warning_signals": ["Lead time extension notices"],
+  "mitigations": ["Second-source qualification"],
+  "trace_id": "test-trace-001"
+}

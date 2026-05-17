@@ -1,0 +1,37 @@
+# Enterprise risk demo — CPU smoke path (default) vs optional GPU research path
+services:
+  enterprise-demo:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - LLM_PROVIDER=offline
+      - ENTERPRISE_FILING_ID=acme_corp_10k
+    volumes:
+      - ./artifacts:/app/artifacts
+    command: streamlit run src/ui/streamlit_app.py --server.address=0.0.0.0
+
+  enterprise-demo-cli:
+    profiles: ["cli"]
+    build: .
+    environment:
+      - LLM_PROVIDER=offline
+    volumes:
+      - ./artifacts:/app/artifacts
+    command: python scripts/run_enterprise_demo.py --offline --output /app/artifacts/demo
+
+  # Optional GPU research path — causal RLHF training (not required for demo)
+  causal-train-gpu:
+    profiles: ["gpu-research"]
+    build: .
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - ./experiments:/app/experiments
+      - ./data:/app/data
+    command: python scripts/train.py --config experiments/configs/causal_rlhf_config.json

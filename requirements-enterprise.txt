@@ -1,0 +1,6 @@
+# Enterprise risk demo layer (optional alongside core requirements.txt)
+dspy-ai>=2.4.0
+langfuse>=2.0.0
+streamlit>=1.28.0
+python-dotenv>=1.0.0
+beautifulsoup4>=4.12.0

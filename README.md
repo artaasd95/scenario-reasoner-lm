@@ -17,9 +17,30 @@ and robustness-evaluation substrate. The next product layer should add 10-K
 ingestion, DSPy reasoning modules and optimizers, Langfuse white-box traces, a
 simple Streamlit or Gradio UI, Dockerized environments, and a focused demo path.
 
-See [Enterprise Risk Scenario Generator Roadmap](docs/enterprise-risk-showcase-roadmap.md)
-for the current-state audit, target architecture, sprint plan, and showcase
-criteria.
+See [Enterprise Risk Demo Contract](docs/enterprise-risk-demo.md) for the bundled
+10-K showcase scope, non-goals, and decision log.
+
+### Enterprise risk demo (S2)
+
+**Goal:** five catastrophic-but-plausible enterprise risk scenarios from one bundled 10-K.
+
+**Non-goals:** no financial advice, no broad GRC platform, no training-first detour.
+
+```bash
+pip install -r requirements.txt -r requirements-enterprise.txt
+python scripts/run_enterprise_demo.py --offline
+python scripts/export_demo_artifacts.py --output artifacts/enterprise_demo
+streamlit run src/ui/streamlit_app.py
+```
+
+Bundled sample filing: `data/samples/tenk/acme_corp_10k.txt`  
+Tracing: [docs/langfuse-tracing.md](docs/langfuse-tracing.md) · Env template: `.env.example`
+
+Docker (CPU smoke, offline):
+
+```bash
+docker compose up enterprise-demo
+```
 
 ## Getting Started
 
@@ -55,6 +76,16 @@ python scripts/evaluate.py \
 ```
 
 ## Components
+
+### Enterprise risk demo (10-K)
+- `docs/enterprise-risk-demo.md` - Demo contract, non-goals, decision log.
+- `src/risk/schema.py` - Scenario card and evidence chunk schema.
+- `src/risk/enterprise_theta.py` - Enterprise risk Θ (extends causal θ pattern).
+- `src/ingestion/` - 10-K load, SEC section extract, evidence chunking.
+- `src/dspy_modules/` - DSPy signatures and pipeline modules (offline stubs supported).
+- `src/tracing/` - Langfuse `tenk_demo_run` trace contract.
+- `src/ui/streamlit_app.py` - Streamlit demo UI.
+- `scripts/run_enterprise_demo.py` - CLI demo runner.
 
 ### Scenarios
 - `src/scenarios/base_scenario.py` - Generic scenario abstraction and instance model.

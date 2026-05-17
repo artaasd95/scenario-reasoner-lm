@@ -1,0 +1,14 @@
+[
+  {
+    "filing_id": "acme_corp_10k",
+    "expected_sections": ["Risk Factors", "Cybersecurity", "Supply Chain"],
+    "min_scenarios": 5,
+    "criteria_thresholds": {
+      "grounding": 0.7,
+      "plausibility": 0.7,
+      "severity_clarity": 0.7,
+      "non_duplication": 0.9,
+      "trace_completeness": 0.9
+    }
+  }
+]
