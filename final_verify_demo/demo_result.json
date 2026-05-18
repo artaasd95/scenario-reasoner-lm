@@ -1,0 +1,227 @@
+{
+  "filing_id": "acme_corp_10k",
+  "trace_id": "1521af81-b56a-473a-89d2-82d8b053c52f",
+  "langfuse_url": null,
+  "theta": {
+    "filing_id": "acme_corp_10k",
+    "num_scenarios": 5,
+    "severity_floor": "high",
+    "focus_sections": [
+      "Risk Factors",
+      "MD&A",
+      "Business",
+      "Legal Proceedings",
+      "Cybersecurity",
+      "Regulatory",
+      "Supply Chain"
+    ],
+    "critique_passes": 1,
+    "ranking_strategy": "severity_then_likelihood"
+  },
+  "num_chunks": 8,
+  "scenarios": [
+    {
+      "title": "Staging breach escalates to production telemetry exposure",
+      "source_evidence": [
+        {
+          "section_name": "Cybersecurity",
+          "chunk_id": "acme_corp_10k:Cybersecurity:0",
+          "source_span": "chars:1953-2309",
+          "quote_text": "## Cybersecurity\n\nIn November 2025 we detected unauthorized access to a staging environment containing\nnon-production customer telemetry. Forensics are ongoing. We have not determined whether\nproduction systems or personally identifiable information were affected.\n\nWe are enhancing zero-trust network segmentation and MFA coverage for privileged accounts."
+        }
+      ],
+      "causal_chain": [
+        "Attacker pivots from staging to shared IAM misconfiguration",
+        "Production customer telemetry exfiltrated for 3 weeks undetected",
+        "EU OEMs suspend connectivity features pending investigation",
+        "Regulatory fines and contractual indemnity claims accumulate"
+      ],
+      "missed_risk_rationale": "Cyber disclosure is preliminary; production impact not ruled out.",
+      "severity": "catastrophic",
+      "likelihood": "high",
+      "horizon": "0-6 months",
+      "confidence": 0.81,
+      "warning_signals": [
+        "Anomalous outbound traffic",
+        "MFA bypass attempts"
+      ],
+      "mitigations": [
+        "Segment staging from production identity plane"
+      ],
+      "trace_id": "9719a1d9-d09e-4796-8db3-e3501c542265"
+    },
+    {
+      "title": "Single-foundry ASIC cutoff after Taiwan disruption",
+      "source_evidence": [
+        {
+          "section_name": "Risk Factors",
+          "chunk_id": "acme_corp_10k:Risk Factors:1",
+          "source_span": "chars:874-1090",
+          "quote_text": "A prolonged\noutage could delay order fulfillment and financial close processes.\n\nForeign exchange fluctuations, particularly USD versus MYR and TWD, may reduce gross\nmargin when we cannot pass through cost increases."
+        }
+      ],
+      "causal_chain": [
+        "Export controls tighten on advanced packaging in Taiwan",
+        "ACME cannot receive custom ASIC wafers for 6+ months",
+        "Controller production halts for automotive safety lines",
+        "Major OEMs invoke penalty clauses and switch to competitors"
+      ],
+      "missed_risk_rationale": "10-K discloses sole foundry dependency but understates cascade to customer penalties.",
+      "severity": "catastrophic",
+      "likelihood": "medium",
+      "horizon": "6-18 months",
+      "confidence": 0.78,
+      "warning_signals": [
+        "Foundry lead-time notices",
+        "OEM dual-source RFQs"
+      ],
+      "mitigations": [
+        "Second-source ASIC qualification program"
+      ],
+      "trace_id": "26fddb5c-302f-4a9e-ba4e-e79dfcfa485f"
+    },
+    {
+      "title": "SEC revenue recognition investigation triggers restatement spiral",
+      "source_evidence": [
+        {
+          "section_name": "Legal Proceedings",
+          "chunk_id": "acme_corp_10k:Legal Proceedings:0",
+          "source_span": "chars:1552-1951",
+          "quote_text": "## Legal Proceedings\n\nThe SEC is investigating our revenue recognition practices for multi-year service bundles\nsold in 2023\u20132024. We cannot predict timing or outcome; adverse findings could require\nrestatement and trigger customer contract renegotiations.\n\nA class action alleging misleading statements about supply chain resilience was filed\nin the Northern District of California in January 2026."
+        }
+      ],
+      "causal_chain": [
+        "SEC enforcement concludes misallocated multi-year bundle revenue",
+        "Financial restatement reduces reported EBITDA below covenant",
+        "Revolver covenant breach accelerates debt repayment demands",
+        "Customers renegotiate contracts citing material adverse change"
+      ],
+      "missed_risk_rationale": "Legal section notes investigation but not covenant linkage in MD&A.",
+      "severity": "catastrophic",
+      "likelihood": "medium",
+      "horizon": "0-6 months",
+      "confidence": 0.72,
+      "warning_signals": [
+        "Increased audit fees",
+        "Delayed 10-K filing"
+      ],
+      "mitigations": [
+        "Covenant waiver negotiations",
+        "Independent forensic review"
+      ],
+      "trace_id": "53dc286b-c489-41b4-bd63-6b0411905799"
+    },
+    {
+      "title": "EU machinery regulation blocks 19% revenue base",
+      "source_evidence": [
+        {
+          "section_name": "Regulatory",
+          "chunk_id": "acme_corp_10k:Regulatory:0",
+          "source_span": "chars:2311-2638",
+          "quote_text": "## Regulatory Exposure\n\nNew EU machinery regulation (EU) 2023/1230 requires additional functional safety\ndocumentation by March 2027. Non-compliance could block shipments to European OEMs\nrepresenting 19% of revenue.\n\nU.S. CHIPS Act incentives require domestic content thresholds we may not meet without\nrequalifying suppliers."
+        }
+      ],
+      "causal_chain": [
+        "Functional safety documentation misses March 2027 deadline",
+        "EU shipments halted for non-compliant controller families",
+        "European OEM programs defer volume ramps",
+        "Fixed cost base absorbs revenue gap; liquidity tightens"
+      ],
+      "missed_risk_rationale": "Regulatory section cites deadline but not revenue-at-risk quantification.",
+      "severity": "high",
+      "likelihood": "high",
+      "horizon": "18-36 months",
+      "confidence": 0.85,
+      "warning_signals": [
+        "Notified body audit findings",
+        "OEM compliance questionnaires"
+      ],
+      "mitigations": [
+        "Accelerate safety file submissions per product line"
+      ],
+      "trace_id": "467353d7-af0b-484e-a342-f490c207eaf7"
+    },
+    {
+      "title": "Japanese sole-source passive shortage ends legacy platform support",
+      "source_evidence": [
+        {
+          "section_name": "Supply Chain",
+          "chunk_id": "acme_corp_10k:Supply Chain:0",
+          "source_span": "chars:2640-2931",
+          "quote_text": "## Supply Chain Dependencies\n\nCritical passive components and power modules are sole-sourced from two Japanese vendors.\nLead times extended from 14 to 38 weeks during fiscal 2025. We hold 90 days of safety\nstock for tier-1 SKUs but not for legacy platforms scheduled for end-of-life in 2026."
+        }
+      ],
+      "causal_chain": [
+        "38-week lead times extend to allocation rationing",
+        "Legacy platforms lack safety stock coverage",
+        "Installed base customers face unplanned downtime",
+        "Service revenue collapses; replacement parts litigation rises"
+      ],
+      "missed_risk_rationale": "Supply chain notes legacy EOL but not service-revenue exposure.",
+      "severity": "high",
+      "likelihood": "high",
+      "horizon": "6-18 months",
+      "confidence": 0.77,
+      "warning_signals": [
+        "Vendor force-majeure letters",
+        "Allocation notices to planners"
+      ],
+      "mitigations": [
+        "Last-time-buy program for legacy SKUs"
+      ],
+      "trace_id": "af68e703-888b-4898-82ba-10886c6a0502"
+    }
+  ],
+  "critiques": [
+    {
+      "grounding_score": 0.9,
+      "plausibility_score": 0.85,
+      "severity_clarity": 0.9,
+      "non_duplication": 1.0,
+      "trace_completeness": 1.0,
+      "issues": [],
+      "suggestions": [],
+      "trace_id": "26fddb5c-302f-4a9e-ba4e-e79dfcfa485f"
+    },
+    {
+      "grounding_score": 0.9,
+      "plausibility_score": 0.85,
+      "severity_clarity": 0.9,
+      "non_duplication": 1.0,
+      "trace_completeness": 1.0,
+      "issues": [],
+      "suggestions": [],
+      "trace_id": "53dc286b-c489-41b4-bd63-6b0411905799"
+    },
+    {
+      "grounding_score": 0.9,
+      "plausibility_score": 0.85,
+      "severity_clarity": 0.9,
+      "non_duplication": 1.0,
+      "trace_completeness": 1.0,
+      "issues": [],
+      "suggestions": [],
+      "trace_id": "9719a1d9-d09e-4796-8db3-e3501c542265"
+    },
+    {
+      "grounding_score": 0.9,
+      "plausibility_score": 0.85,
+      "severity_clarity": 0.75,
+      "non_duplication": 1.0,
+      "trace_completeness": 1.0,
+      "issues": [],
+      "suggestions": [],
+      "trace_id": "467353d7-af0b-484e-a342-f490c207eaf7"
+    },
+    {
+      "grounding_score": 0.9,
+      "plausibility_score": 0.85,
+      "severity_clarity": 0.75,
+      "non_duplication": 1.0,
+      "trace_completeness": 1.0,
+      "issues": [],
+      "suggestions": [],
+      "trace_id": "af68e703-888b-4898-82ba-10886c6a0502"
+    }
+  ]
+}
