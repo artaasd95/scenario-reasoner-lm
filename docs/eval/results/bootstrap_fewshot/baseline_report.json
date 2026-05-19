@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0.0",
+  "metadata": {
+    "model_id": "offline-stub",
+    "optimizer": "BootstrapFewShot",
+    "seed": 42,
+    "run_id": "baseline-scaffold-s4-01",
+    "filing_id": "acme_corp_10k",
+    "eval_set_path": "data/eval/enterprise_risk_tiny.jsonl",
+    "offline": true,
+    "smoke_mode": true,
+    "token_budget_note": "BootstrapFewShot baseline: max_bootstrapped_demos=4, max_labeled_demos=8 (see optimize.py)"
+  },
+  "aggregate_scores": {
+    "grounding": 0.95,
+    "plausibility": 0.85,
+    "severity_clarity": 0.95,
+    "non_duplication": 1.0,
+    "trace_completeness": 1.0
+  },
+  "thresholds": {
+    "grounding": 0.7,
+    "plausibility": 0.7,
+    "severity_clarity": 0.7,
+    "non_duplication": 0.9,
+    "trace_completeness": 0.9
+  },
+  "per_scenario": [
+    {
+      "scenario_index": 0,
+      "trace_id": "scaffold-0",
+      "title": "Single-foundry ASIC cutoff after Taiwan disruption",
+      "scores": {
+        "grounding": 0.95,
+        "plausibility": 0.85,
+        "severity_clarity": 0.95,
+        "non_duplication": 1.0,
+        "trace_completeness": 1.0
+      },
+      "pass": true
+    },
+    {
+      "scenario_index": 1,
+      "trace_id": "scaffold-1",
+      "title": "SEC revenue recognition investigation triggers restatement spiral",
+      "scores": {
+        "grounding": 0.95,
+        "plausibility": 0.85,
+        "severity_clarity": 0.95,
+        "non_duplication": 1.0,
+        "trace_completeness": 1.0
+      },
+      "pass": true
+    },
+    {
+      "scenario_index": 2,
+      "trace_id": "scaffold-2",
+      "title": "Staging breach escalates to production telemetry exposure",
+      "scores": {
+        "grounding": 0.95,
+        "plausibility": 0.85,
+        "severity_clarity": 0.95,
+        "non_duplication": 1.0,
+        "trace_completeness": 1.0
+      },
+      "pass": true
+    },
+    {
+      "scenario_index": 3,
+      "trace_id": "scaffold-3",
+      "title": "EU machinery regulation blocks 19% revenue base",
+      "scores": {
+        "grounding": 0.95,
+        "plausibility": 0.85,
+        "severity_clarity": 0.8,
+        "non_duplication": 1.0,
+        "trace_completeness": 1.0
+      },
+      "pass": true
+    },
+    {
+      "scenario_index": 4,
+      "trace_id": "scaffold-4",
+      "title": "Japanese sole-source passive shortage ends legacy platform support",
+      "scores": {
+        "grounding": 0.95,
+        "plausibility": 0.85,
+        "severity_clarity": 0.8,
+        "non_duplication": 1.0,
+        "trace_completeness": 1.0
+      },
+      "pass": true
+    }
+  ],
+  "all_pass": true,
+  "created_at": "2026-05-19T00:00:00+00:00"
+}

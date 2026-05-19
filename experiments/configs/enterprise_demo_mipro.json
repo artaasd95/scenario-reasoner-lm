@@ -1,0 +1,20 @@
+{
+  "filing_id": "acme_corp_10k",
+  "offline": true,
+  "optimizer": "MIPRO",
+  "enable_mipro": false,
+  "seed": 42,
+  "comment": "Set ENABLE_MIPRO=1 and offline=false when running live MIPRO after S4-01 baseline is recorded.",
+  "bootstrap_budget": {
+    "max_bootstrapped_demos": 4,
+    "max_labeled_demos": 8
+  },
+  "mipro_budget": {
+    "max_bootstrapped_demos": 4,
+    "max_labeled_demos": 8,
+    "num_candidates": 10,
+    "init_temperature": 1.0
+  },
+  "eval_set": "data/eval/enterprise_risk_tiny.jsonl",
+  "output_dir": "docs/eval/results/mipro"
+}

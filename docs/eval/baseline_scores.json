@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "optimizer": "BootstrapFewShot",
+  "model_id": "offline-stub",
+  "seed": 42,
+  "filing_id": "acme_corp_10k",
+  "eval_set": "data/eval/enterprise_risk_tiny.jsonl",
+  "note": "Offline-stub baseline for regression gates. Re-record via scripts/run_enterprise_eval.py when API budget allows.",
+  "aggregate_scores": {
+    "grounding": 0.95,
+    "plausibility": 0.85,
+    "severity_clarity": 0.95,
+    "non_duplication": 1.0,
+    "trace_completeness": 1.0
+  },
+  "thresholds": {
+    "grounding": 0.7,
+    "plausibility": 0.7,
+    "severity_clarity": 0.7,
+    "non_duplication": 0.9,
+    "trace_completeness": 0.9
+  }
+}

@@ -36,6 +36,23 @@ streamlit run src/ui/streamlit_app.py
 Bundled sample filing: `data/samples/tenk/acme_corp_10k.txt`  
 Tracing: [docs/langfuse-tracing.md](docs/langfuse-tracing.md) · Env template: `.env.example`
 
+### Enterprise eval and optimizers (S4)
+
+Eval rubric, baseline gates, and optimizer comparison scaffolding (no live API runs required in dev):
+
+- [docs/eval-enterprise-risk.md](docs/eval-enterprise-risk.md) — S2 criteria rubric and decision log
+- [docs/eval/baseline_scores.json](docs/eval/baseline_scores.json) — checked-in regression floors
+- [docs/eval/results/bootstrap_fewshot/](docs/eval/results/bootstrap_fewshot/) — BootstrapFewShot baseline report (JSON + MD)
+
+```bash
+# When API budget is reserved (offline default needs no keys):
+python scripts/run_enterprise_eval.py --offline
+python scripts/compare_enterprise_optimizers.py --dry-run
+```
+
+MIPRO: set `ENABLE_MIPRO=1` and `--optimizer MIPRO` on the demo runner; falls back to BootstrapFewShot on failure.  
+CI regression workflow template (manual/disabled): `.github/workflows/enterprise_eval_regression.yml`
+
 Docker (CPU smoke, offline):
 
 ```bash
@@ -85,7 +102,12 @@ python scripts/evaluate.py \
 - `src/dspy_modules/` - DSPy signatures and pipeline modules (offline stubs supported).
 - `src/tracing/` - Langfuse `tenk_demo_run` trace contract.
 - `src/ui/streamlit_app.py` - Streamlit demo UI.
-- `scripts/run_enterprise_demo.py` - CLI demo runner.
+- `scripts/run_enterprise_demo.py` - CLI demo runner (`--optimizer BootstrapFewShot|MIPRO`).
+- `scripts/run_enterprise_eval.py` - Tiny eval scorer (S2 criteria).
+- `scripts/compare_enterprise_optimizers.py` - Optimizer comparison (`--dry-run` in dev).
+- `src/dspy_modules/eval_metrics.py` - Eval loader and per-criterion scoring.
+- `src/dspy_modules/optimize.py` - BootstrapFewShot / MIPRO feature flag.
+- `src/eval/enterprise_eval_schema.py` - Stable eval artifact schema.
 
 ### Scenarios
 - `src/scenarios/base_scenario.py` - Generic scenario abstraction and instance model.

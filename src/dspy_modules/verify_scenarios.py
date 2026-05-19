@@ -16,6 +16,7 @@ from src.risk.schema import EnterpriseRiskScenarioCard
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _EVAL_FIXTURE = _REPO_ROOT / "tests" / "fixtures" / "enterprise_risk_eval.json"
+_EVAL_JSONL = _REPO_ROOT / "data" / "eval" / "enterprise_risk_tiny.jsonl"
 
 
 _SEVERITY_ORDER = {"low": 0, "medium": 1, "high": 2, "catastrophic": 3}
@@ -129,7 +130,15 @@ class VerifyScenariosModule:
 
     @staticmethod
     def load_eval_set() -> List[Dict[str, Any]]:
-        """Tiny evaluation set for BootstrapFewShot (future optimizer)."""
+        """Tiny evaluation set for BootstrapFewShot / MIPRO optimizers."""
+        if _EVAL_JSONL.is_file():
+            rows: List[Dict[str, Any]] = []
+            with open(_EVAL_JSONL, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if line:
+                        rows.append(json.loads(line))
+            return rows
         if _EVAL_FIXTURE.is_file():
             with open(_EVAL_FIXTURE, encoding="utf-8") as fh:
                 return json.load(fh)

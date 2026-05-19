@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0",
+  "filing_id": "acme_corp_10k",
+  "eval_set_path": "data/eval/enterprise_risk_tiny.jsonl",
+  "bootstrap_fewshot": {
+    "schema_version": "1.0.0",
+    "metadata": {
+      "model_id": "offline-stub",
+      "optimizer": "BootstrapFewShot",
+      "seed": 42,
+      "run_id": "dry-run-bootstrap",
+      "filing_id": "acme_corp_10k",
+      "offline": true,
+      "smoke_mode": false,
+      "token_budget_note": "BootstrapFewShot budget: {'max_bootstrapped_demos': 4, 'max_labeled_demos': 8}"
+    },
+    "aggregate_scores": {
+      "grounding": 0.95,
+      "plausibility": 0.85,
+      "severity_clarity": 0.95,
+      "non_duplication": 1.0,
+      "trace_completeness": 1.0
+    },
+    "thresholds": {
+      "grounding": 0.7,
+      "plausibility": 0.7,
+      "severity_clarity": 0.7,
+      "non_duplication": 0.9,
+      "trace_completeness": 0.9
+    },
+    "per_scenario": [],
+    "all_pass": true
+  },
+  "mipro": {
+    "schema_version": "1.0.0",
+    "metadata": {
+      "model_id": "offline-stub",
+      "optimizer": "MIPRO",
+      "seed": 42,
+      "run_id": "dry-run-mipro",
+      "filing_id": "acme_corp_10k",
+      "offline": true,
+      "smoke_mode": false,
+      "token_budget_note": "dry-run placeholder; run live comparison when budget allows"
+    },
+    "aggregate_scores": {
+      "grounding": 0.95,
+      "plausibility": 0.86,
+      "severity_clarity": 0.95,
+      "non_duplication": 1.0,
+      "trace_completeness": 1.0
+    },
+    "thresholds": {
+      "grounding": 0.7,
+      "plausibility": 0.7,
+      "severity_clarity": 0.7,
+      "non_duplication": 0.9,
+      "trace_completeness": 0.9
+    },
+    "per_scenario": [],
+    "all_pass": true
+  },
+  "criterion_deltas": {
+    "grounding": 0.0,
+    "non_duplication": 0.0,
+    "plausibility": 0.01,
+    "severity_clarity": 0.0,
+    "trace_completeness": 0.0
+  },
+  "scenario_trace_ids": [],
+  "created_at": "2026-05-19T00:00:00+00:00"
+}
