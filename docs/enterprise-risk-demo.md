@@ -42,6 +42,7 @@ UI: `streamlit run src/ui/streamlit_app.py`
 | 2026-05-17 | **Extend Θ, do not replace causal abstractions** | `EnterpriseRiskTheta` parallels `CausalTheta`; causal RLHF code paths stay intact. |
 | 2026-05-17 | **BootstrapFewShot before MIPRO** | Optimize only after a tiny eval set measures grounding and plausibility; MIPRO deferred. |
 | 2026-05-17 | **Langfuse parent trace `tenk_demo_run`** | White-box spans for each pipeline stage; no-op client when keys absent. |
+| 2026-05-20 | **S5 simulation vs measurement paths** | See `docs/scenario-simulation-paths.md`; live runs gated; headline 10-K benchmark unchanged. |
 
 ## Related artifacts
 

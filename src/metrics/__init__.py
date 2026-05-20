@@ -5,8 +5,16 @@ Base metric class hierarchy and registry for evaluating reasoning quality.
 """
 
 from src.metrics.base_metrics import BaseMetric, MetricRegistry
+from src.metrics.goal_preservation_metrics import (
+    GoalPreservationScore,
+    OnTargetReasoningMetric,
+    register_goal_preservation_metrics,
+)
 
 __all__ = [
     "BaseMetric",
     "MetricRegistry",
+    "GoalPreservationScore",
+    "OnTargetReasoningMetric",
+    "register_goal_preservation_metrics",
 ]

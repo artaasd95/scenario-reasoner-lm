@@ -1,0 +1,42 @@
+name: Scenario Simulation Smoke (pytest only)
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  s5-unit-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-enterprise.txt
+
+      - name: S5 unit and integration smoke (no live pipeline)
+        env:
+          LLM_PROVIDER: offline
+        run: |
+          python -m pytest \
+            tests/unit/test_scenario_simulation_runner.py \
+            tests/unit/test_goal_preservation_metrics.py \
+            tests/unit/test_scenario_measurement.py \
+            tests/integration/test_reasoning_path_audit_smoke.py \
+            -v
+
+      # Full simulation/measurement CLI runs deferred to complete S5 sprint.
+      # - python scripts/run_scenario_simulation.py
+      # - python scripts/run_scenario_measurement.py --smoke

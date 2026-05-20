@@ -1,0 +1,66 @@
+{
+  "version": "1.0.0",
+  "fixtures": [
+    {
+      "fixture_id": "enterprise_bounded_default",
+      "scenario_type": "enterprise",
+      "path_mode": "bounded",
+      "goal": "Five catastrophic-but-plausible scenarios from one bundled 10-K",
+      "theta": {
+        "filing_id": "acme_corp_10k",
+        "num_scenarios": 5,
+        "severity_floor": "high",
+        "ranking_strategy": "severity_then_likelihood"
+      },
+      "stages": ["baseline", "elevated", "severe", "critical", "catastrophic"],
+      "expected_spans": [
+        "loading",
+        "chunking",
+        "extraction",
+        "hypotheses",
+        "critique",
+        "ranking"
+      ]
+    },
+    {
+      "fixture_id": "enterprise_wide_grid",
+      "scenario_type": "enterprise",
+      "path_mode": "wide",
+      "goal": "Explore severity and scenario-count grid from one filing",
+      "theta_grid": [
+        {"filing_id": "acme_corp_10k", "num_scenarios": 3, "severity_floor": "high"},
+        {"filing_id": "acme_corp_10k", "num_scenarios": 5, "severity_floor": "high"},
+        {"filing_id": "acme_corp_10k", "num_scenarios": 5, "severity_floor": "catastrophic"}
+      ],
+      "expected_spans": ["loading", "extraction", "hypotheses", "ranking"]
+    },
+    {
+      "fixture_id": "causal_bounded_direct",
+      "scenario_type": "causal",
+      "path_mode": "bounded",
+      "goal": "Single direct-chain causal scenario at easy difficulty",
+      "theta": {
+        "chain_length": 3,
+        "intervention_type": "direct",
+        "domain": "physical",
+        "difficulty": "easy",
+        "entity_count": 2
+      },
+      "stages": ["good", "neutral", "bad"],
+      "expected_spans": ["prompt", "reasoning", "answer"]
+    },
+    {
+      "fixture_id": "causal_wide_monte_carlo",
+      "scenario_type": "causal",
+      "path_mode": "wide",
+      "goal": "Monte Carlo style sweep: small θ perturbations yield many paths",
+      "theta_samples": [
+        {"chain_length": 3, "intervention_type": "direct", "domain": "physical", "difficulty": "easy"},
+        {"chain_length": 4, "intervention_type": "direct", "domain": "physical", "difficulty": "medium"},
+        {"chain_length": 3, "intervention_type": "counterfactual", "domain": "social", "difficulty": "medium"},
+        {"chain_length": 5, "intervention_type": "confounded", "domain": "medical", "difficulty": "hard", "num_confounders": 1}
+      ],
+      "expected_spans": ["prompt", "reasoning", "answer"]
+    }
+  ]
+}

@@ -53,6 +53,29 @@ python scripts/compare_enterprise_optimizers.py --dry-run
 MIPRO: set `ENABLE_MIPRO=1` and `--optimizer MIPRO` on the demo runner; falls back to BootstrapFewShot on failure.  
 CI regression workflow template (manual/disabled): `.github/workflows/enterprise_eval_regression.yml`
 
+### Scenario simulation and measurement (S5)
+
+Simulation (θ → world → trace) vs measurement (scores, θ slices). Two path modes: **wide** (grid / Monte Carlo, many paths) and **bounded** (fixed stages, e.g. five enterprise cards).
+
+- [docs/scenario-simulation-paths.md](docs/scenario-simulation-paths.md) — contract, decision table, resource gates
+- [docs/adr/simulation-vs-measurement.md](docs/adr/simulation-vs-measurement.md) — ADR
+
+**Dev/CI default:** mock/smoke only; live runs require `ALLOW_LIVE_PROVIDER=1`. Until the full S5 sprint pipeline, run **unit tests** (not full CLI pipelines in CI):
+
+```bash
+pytest tests/unit/test_scenario_simulation_runner.py \
+       tests/unit/test_goal_preservation_metrics.py \
+       tests/unit/test_scenario_measurement.py \
+       tests/integration/test_reasoning_path_audit_smoke.py -v
+```
+
+Optional local artifact generation (no network):
+
+```bash
+python scripts/run_scenario_simulation.py
+python scripts/run_scenario_measurement.py --smoke --output docs/eval/results/scenario_measurement
+```
+
 Docker (CPU smoke, offline):
 
 ```bash
