@@ -53,9 +53,21 @@ scenario-reasoner-lm/
 |   |   |-- cot_monitor.py
 |   |   `-- tot_monitor.py
 |   |
+|   |-- search/                      # S6: cards, game θ, graph monitor, manifold
+|   |   |-- __init__.py
+|   |   |-- cards.py                 # NodeCard, ActionCard, AlgorithmCard
+|   |   |-- game_theta.py            # GameTheoreticTheta (staged action vectors)
+|   |   |-- graph_monitor.py         # SearchGraphMonitor
+|   |   `-- manifold.py              # ActionManifold (box / simplex)
+|   |
 |   |-- scenarios/
 |   |   |-- __init__.py
 |   |   |-- base_scenario.py         # Generic scenario abstraction
+|   |   |-- theta_mapping.py         # Enterprise / causal / S6 θ maps
+|   |   |-- simulation_runner.py     # S5 simulation fixtures
+|   |   |-- financial/               # S6 financial + market-making θ
+|   |   |   |-- financial_risk_theta.py
+|   |   |   `-- market_making_theta.py
 |   |   `-- causal/
 |   |       |-- __init__.py
 |   |       |-- generator.py          # Causal/counterfactual generator
@@ -100,9 +112,19 @@ scenario-reasoner-lm/
 |       `-- test_train_eval_smoke.py
 |
 `-- docs/
+    |-- project-track.md
+    |-- scenario-search-extensions-contract.md
     |-- detailed-improvement-roadmap.md
     |-- ideas-plan.md
-    `-- scenario-search-formulation.md
+    |-- scenario-search-formulation.md
+    |-- scenario-simulation-paths.md
+    |-- enterprise-risk-demo.md
+    `-- adr/
+        |-- simulation-vs-measurement.md
+        |-- game-theoretic-action-space.md
+        |-- algorithm-cards-operators.md
+        |-- search-node-monitoring.md
+        `-- financial-risk-and-market-making.md
 ```
 
 ## Key Components

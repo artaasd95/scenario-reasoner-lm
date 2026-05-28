@@ -53,6 +53,21 @@ python scripts/compare_enterprise_optimizers.py --dry-run
 MIPRO: set `ENABLE_MIPRO=1` and `--optimizer MIPRO` on the demo runner; falls back to BootstrapFewShot on failure.  
 CI regression workflow template (manual/disabled): `.github/workflows/enterprise_eval_regression.yml`
 
+### Scenario search extensions (S6)
+
+Game-theoretic staged action vectors, algorithm cards (node / action / operator),
+search-graph node monitoring, and financial / market-making reasoning θ — without
+changing the headline 10-K benchmark.
+
+- [docs/project-track.md](docs/project-track.md) — single-page orientation
+- [docs/scenario-search-extensions-contract.md](docs/scenario-search-extensions-contract.md) — S6 contract and phasing
+- ADRs: `docs/adr/game-theoretic-action-space.md`, `algorithm-cards-operators.md`, `search-node-monitoring.md`, `financial-risk-and-market-making.md`
+- Code: `src/search/`, `src/scenarios/financial/`
+
+```bash
+pytest tests/unit/test_search_extensions.py -v
+```
+
 ### Scenario simulation and measurement (S5)
 
 Simulation (θ → world → trace) vs measurement (scores, θ slices). Two path modes: **wide** (grid / Monte Carlo, many paths) and **bounded** (fixed stages, e.g. five enterprise cards).

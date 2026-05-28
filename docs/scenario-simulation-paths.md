@@ -137,4 +137,6 @@ Headline benchmark unchanged: **five catastrophic scenarios from one bundled 10-
 
 - [Enterprise Risk Demo Contract](enterprise-risk-demo.md)
 - [Scenario search formulation](scenario-search-formulation.md)
+- [Scenario search extensions (S6)](scenario-search-extensions-contract.md)
+- [Project track](project-track.md)
 - [Langfuse tracing](langfuse-tracing.md)
