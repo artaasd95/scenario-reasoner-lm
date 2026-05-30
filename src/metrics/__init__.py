@@ -10,6 +10,11 @@ from src.metrics.goal_preservation_metrics import (
     OnTargetReasoningMetric,
     register_goal_preservation_metrics,
 )
+from src.metrics.cross_scenario_coherence_metrics import (
+    CrossScenarioCoherenceScore,
+    SiblingNonContradictionMetric,
+    register_cross_scenario_coherence_metrics,
+)
 
 __all__ = [
     "BaseMetric",
@@ -17,4 +22,7 @@ __all__ = [
     "GoalPreservationScore",
     "OnTargetReasoningMetric",
     "register_goal_preservation_metrics",
+    "CrossScenarioCoherenceScore",
+    "SiblingNonContradictionMetric",
+    "register_cross_scenario_coherence_metrics",
 ]

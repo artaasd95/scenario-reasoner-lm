@@ -1,0 +1,46 @@
+name: Scenario Search Extensions Smoke (pytest only)
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "src/search/**"
+      - "src/scenarios/financial/**"
+      - "src/scenarios/theta_mapping.py"
+      - "tests/unit/test_search_extensions.py"
+      - ".github/workflows/search_extensions_smoke.yml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "src/search/**"
+      - "src/scenarios/financial/**"
+      - "src/scenarios/theta_mapping.py"
+      - "tests/unit/test_search_extensions.py"
+      - ".github/workflows/search_extensions_smoke.yml"
+  workflow_dispatch:
+
+jobs:
+  s6-search-unit-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-enterprise.txt
+
+      - name: S6 search extensions unit tests (no live pipeline)
+        env:
+          LLM_PROVIDER: offline
+        run: |
+          python -m pytest tests/unit/test_search_extensions.py -v

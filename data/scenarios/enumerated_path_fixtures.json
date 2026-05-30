@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "fixtures": [
+    {
+      "fixture_id": "enterprise_five_stage_ladder",
+      "scenario_type": "enterprise",
+      "goal": "Five catastrophic-but-plausible scenarios from one bundled 10-K",
+      "theta": {
+        "filing_id": "acme_corp_10k",
+        "num_scenarios": 5,
+        "severity_floor": "high",
+        "ranking_strategy": "severity_then_likelihood"
+      },
+      "stages": ["baseline", "elevated", "severe", "critical", "catastrophic"],
+      "expected_path_count": 5
+    },
+    {
+      "fixture_id": "enterprise_good_bad_worst",
+      "scenario_type": "enterprise",
+      "goal": "Three-stage severity ladder from acme 10-K Risk Factors",
+      "theta": {
+        "filing_id": "acme_corp_10k",
+        "num_scenarios": 3,
+        "severity_floor": "high",
+        "ranking_strategy": "severity_then_likelihood"
+      },
+      "stages": ["good", "bad", "worst"],
+      "expected_path_count": 3
+    },
+    {
+      "fixture_id": "causal_good_bad_worst",
+      "scenario_type": "causal",
+      "goal": "Direct-chain causal reasoning at easy difficulty",
+      "theta": {
+        "chain_length": 3,
+        "intervention_type": "direct",
+        "domain": "physical",
+        "difficulty": "easy",
+        "entity_count": 2
+      },
+      "stages": ["good", "neutral", "bad", "worst"],
+      "expected_path_count": 4
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+name: Scenario Reasoning Eval Smoke (pytest only)
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  s6-s7-unit-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-enterprise.txt
+
+      - name: S6/S7 unit smoke (no live pipeline)
+        env:
+          LLM_PROVIDER: offline
+        run: |
+          python -m pytest \
+            tests/unit/test_enumerated_path_generator.py \
+            tests/unit/test_exploratory_path_generator.py \
+            tests/unit/test_scenario_reasoning_batch.py \
+            tests/unit/test_cross_scenario_coherence_metrics.py \
+            tests/unit/test_scenario_reasoning_eval.py \
+            -v
+
+      # Full reasoning eval CLI deferred to execution sprint (manual dispatch).
+      # - python scripts/run_scenario_reasoning_eval.py --smoke
+
+  execution-sprint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-enterprise.txt
+
+      - name: Execution sprint gate check
+        env:
+          EXECUTION_SPRINT_GATE: ${{ vars.EXECUTION_SPRINT_GATE || '0' }}
+          LLM_PROVIDER: offline
+        run: |
+          if [ "$EXECUTION_SPRINT_GATE" != "1" ]; then
+            echo "EXECUTION_SPRINT_GATE not set on repository; skipping full pipeline."
+            exit 0
+          fi
+          python scripts/run_scenario_reasoning_eval.py --full --output docs/eval/results/scenario_reasoning

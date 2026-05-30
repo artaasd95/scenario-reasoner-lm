@@ -68,6 +68,7 @@ Bundled fixture: `enterprise_bounded_default`, `causal_bounded_direct`.
 | --- | --- | --- | --- |
 | LLM provider | `LLM_PROVIDER` | `offline` | Offline stubs in demo pipeline |
 | Live provider approval | `ALLOW_LIVE_PROVIDER` | unset | Must be `1` for simulation `--live` or paid calls |
+| Execution sprint | `EXECUTION_SPRINT_GATE` | unset | Must be `1` for full reasoning eval `--full` pipeline |
 | MIPRO optimizer | `ENABLE_MIPRO` | unset | MIPRO only when set |
 | Langfuse export | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` | unset | In-memory spans only; no-op when absent |
 
@@ -77,6 +78,11 @@ Bundled fixture: `enterprise_bounded_default`, `causal_bounded_direct`.
 pytest tests/unit/test_scenario_simulation_runner.py \
        tests/unit/test_goal_preservation_metrics.py \
        tests/unit/test_scenario_measurement.py \
+       tests/unit/test_enumerated_path_generator.py \
+       tests/unit/test_exploratory_path_generator.py \
+       tests/unit/test_scenario_reasoning_batch.py \
+       tests/unit/test_cross_scenario_coherence_metrics.py \
+       tests/unit/test_scenario_reasoning_eval.py \
        tests/integration/test_reasoning_path_audit_smoke.py -v
 ```
 
@@ -85,6 +91,7 @@ Optional local artifact generation (no network):
 ```bash
 python scripts/run_scenario_simulation.py
 python scripts/run_scenario_measurement.py --smoke --output docs/eval/results/scenario_measurement
+python scripts/run_scenario_reasoning_eval.py --smoke --output docs/eval/results/scenario_reasoning
 ```
 
 ## EnterpriseRiskTheta ↔ causal θ taxonomy
@@ -110,6 +117,36 @@ Headline benchmark unchanged: **five catastrophic scenarios from one bundled 10-
 | Reasoning path fidelity | `src/monitoring/reasoning_path_audit.py` |
 | Manual trace review | `manual_trace_review_instructions()`; Langfuse optional |
 
+## Multi-scenario reasoning paths (S6 / S7)
+
+| Component | Path |
+| --- | --- |
+| Enumerated path generator | `src/scenarios/enumerated_path_generator.py` |
+| Exploratory path generator | `src/scenarios/exploratory_path_generator.py` |
+| Batch reasoning (mock/smoke) | `src/scenarios/scenario_reasoning_batch.py` |
+| Cross-scenario coherence metrics | `src/metrics/cross_scenario_coherence_metrics.py` |
+| Reasoning eval schema | `src/eval/scenario_reasoning_eval_schema.py` |
+| Reasoning eval harness | `scripts/run_scenario_reasoning_eval.py` |
+| Enumerated fixtures | `data/scenarios/enumerated_path_fixtures.json` |
+| Exploratory fixtures | `data/scenarios/exploratory_path_fixtures.json` |
+| Coherence fixtures | `data/eval/cross_scenario_coherence_fixtures.jsonl` |
+
+### Execution sprint vs fixture measurement (S7-06)
+
+| Mode | When | Gate | Command |
+| --- | --- | --- | --- |
+| **Unit/smoke (default)** | Every PR, local dev, CI | None | `pytest tests/unit/test_*path*.py …` |
+| **Fixture measurement** | Regression on bundled paths | None | `python scripts/run_scenario_reasoning_eval.py --smoke` |
+| **Execution sprint** | Approved sprint window only | `EXECUTION_SPRINT_GATE=1` | `EXECUTION_SPRINT_GATE=1 python scripts/run_scenario_reasoning_eval.py --full` |
+
+**Keep measuring on fixtures** during normal development. Run the **execution sprint** only when:
+
+- Sprint window is approved for live/GPU/paid API exploratory+enumerated pipeline runs
+- Budget and `ALLOW_LIVE_PROVIDER=1` are in place for any live provider step
+- Artifacts are archived under `docs/eval/results/scenario_reasoning/`
+
+CI runs unit/smoke pytest only. The execution-sprint workflow is `workflow_dispatch` and gated on `EXECUTION_SPRINT_GATE`.
+
 ## Decision log (S5)
 
 | Date | Decision | Rationale |
@@ -132,6 +169,7 @@ Headline benchmark unchanged: **five catastrophic scenarios from one bundled 10-
 | Fixtures | `data/eval/simulation_fixtures.json`, `data/eval/goal_preservation_fixtures.jsonl` |
 | Results dir | `docs/eval/results/scenario_measurement/` |
 | CI smoke | `.github/workflows/scenario_simulation_smoke.yml` |
+| S6/S7 reasoning eval CI | `.github/workflows/scenario_reasoning_eval_smoke.yml` |
 
 ## Related
 

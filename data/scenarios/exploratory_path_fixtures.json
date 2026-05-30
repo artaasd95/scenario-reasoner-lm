@@ -1,0 +1,50 @@
+{
+  "version": "1.0.0",
+  "fixtures": [
+    {
+      "fixture_id": "enterprise_wide_grid",
+      "scenario_type": "enterprise",
+      "goal": "Explore severity and scenario-count grid from one filing",
+      "config": {"max_paths": 6, "seed": 42, "strategy": "grid"},
+      "theta_anchor": {
+        "filing_id": "acme_corp_10k",
+        "num_scenarios": 5,
+        "severity_floor": "high"
+      },
+      "theta_grid": [
+        {"filing_id": "acme_corp_10k", "num_scenarios": 3, "severity_floor": "high"},
+        {"filing_id": "acme_corp_10k", "num_scenarios": 5, "severity_floor": "high"},
+        {"filing_id": "acme_corp_10k", "num_scenarios": 5, "severity_floor": "catastrophic"},
+        {"filing_id": "acme_corp_10k", "num_scenarios": 4, "severity_floor": "catastrophic"}
+      ],
+      "min_path_count": 4
+    },
+    {
+      "fixture_id": "causal_monte_carlo",
+      "scenario_type": "causal",
+      "goal": "Monte Carlo style sweep: small θ perturbations yield many paths",
+      "config": {"max_paths": 8, "seed": 42, "strategy": "monte_carlo"},
+      "theta_anchor": {
+        "chain_length": 3,
+        "intervention_type": "direct",
+        "domain": "physical",
+        "difficulty": "easy",
+        "entity_count": 2
+      },
+      "min_path_count": 5
+    },
+    {
+      "fixture_id": "causal_tree_expand",
+      "scenario_type": "causal",
+      "goal": "Tree expansion from direct-chain anchor",
+      "config": {"max_paths": 10, "seed": 7, "strategy": "tree_expand"},
+      "theta_anchor": {
+        "chain_length": 3,
+        "intervention_type": "direct",
+        "domain": "physical",
+        "difficulty": "easy"
+      },
+      "min_path_count": 3
+    }
+  ]
+}
