@@ -1,0 +1,33 @@
+mode: train
+metadata:
+  datasource_id: bundled_generator
+  description: Training pipeline from scenario generator fixtures
+
+source:
+  type: generator
+  include_game: true
+
+stages:
+  - normalize
+  - measure
+  - label
+  - split
+  - filter
+
+output_dir: data/processed/train
+
+split:
+  train: 0.9
+  val: 0.1
+
+filter:
+  drop_infeasible: true
+  feasibility_threshold: 0.2
+
+measure:
+  use_feasibility: true
+  use_tail_tags: true
+
+label:
+  path_quality: auto
+  chosen_rejected: chosen

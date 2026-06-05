@@ -22,7 +22,7 @@ from src.risk.enterprise_theta import EnterpriseRiskTheta
 class TestSimulationFixtures:
     def test_load_bundled_fixtures(self):
         fixtures = load_simulation_fixtures()
-        assert len(fixtures) >= 4
+        assert len(fixtures) >= 5
         types = {f.scenario_type for f in fixtures}
         assert ScenarioType.ENTERPRISE in types
         assert ScenarioType.CAUSAL in types

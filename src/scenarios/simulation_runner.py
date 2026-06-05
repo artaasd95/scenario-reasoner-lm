@@ -21,9 +21,13 @@ from src.scenarios.causal.generator import CausalScenarioGenerator
 from src.scenarios.causal.taxonomy import CausalTheta
 from src.scenarios.resource_gate import assert_mock_or_gated, effective_provider_mode
 from src.scenarios.theta_mapping import enterprise_theta_to_causal_slice
+from src.search.cards import ActionCard, AlgorithmCard, NodeCard, SearchOperator
+from src.search.game_theta import GameTheoreticTheta
+from src.search.graph_monitor import SearchGraphMonitor
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_FIXTURES_PATH = _REPO_ROOT / "data" / "eval" / "simulation_fixtures.json"
+GAME_BOUNDED_FIXTURE_PATH = _REPO_ROOT / "data" / "scenarios" / "game_bounded_default.json"
 
 
 class ScenarioType(str, Enum):
@@ -47,6 +51,7 @@ class SimulationFixture:
     theta_samples: Optional[List[Dict[str, Any]]] = None
     stages: Optional[List[str]] = None
     expected_spans: List[str] = field(default_factory=list)
+    profile: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "SimulationFixture":
@@ -60,7 +65,25 @@ class SimulationFixture:
             theta_samples=data.get("theta_samples"),
             stages=data.get("stages"),
             expected_spans=list(data.get("expected_spans", [])),
+            profile=data.get("profile"),
         )
+
+    @property
+    def is_game_bounded(self) -> bool:
+        return (
+            self.profile == "game_bounded"
+            or self.fixture_id == "game_bounded_default"
+        )
+
+
+def load_game_bounded_default_fixture() -> SimulationFixture:
+    """Load bounded game-θ smoke fixture (S6-07)."""
+    if not GAME_BOUNDED_FIXTURE_PATH.is_file():
+        raise FileNotFoundError(f"Game bounded fixture not found: {GAME_BOUNDED_FIXTURE_PATH}")
+    data = json.loads(GAME_BOUNDED_FIXTURE_PATH.read_text(encoding="utf-8"))
+    if "profile" not in data:
+        data = {**data, "profile": "game_bounded"}
+    return SimulationFixture.from_dict(data)
 
 
 def load_simulation_fixtures(path: Path | str | None = None) -> List[SimulationFixture]:
@@ -68,7 +91,11 @@ def load_simulation_fixtures(path: Path | str | None = None) -> List[SimulationF
     if not fixture_path.is_file():
         raise FileNotFoundError(f"Simulation fixtures not found: {fixture_path}")
     payload = json.loads(fixture_path.read_text(encoding="utf-8"))
-    return [SimulationFixture.from_dict(row) for row in payload.get("fixtures", [])]
+    fixtures = [SimulationFixture.from_dict(row) for row in payload.get("fixtures", [])]
+    game_path = GAME_BOUNDED_FIXTURE_PATH
+    if game_path.is_file() and not any(f.fixture_id == "game_bounded_default" for f in fixtures):
+        fixtures.append(load_game_bounded_default_fixture())
+    return fixtures
 
 
 def _mock_span(name: str, trace_id: str, outputs: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -180,6 +207,69 @@ def _run_causal_bounded(
     }
 
 
+def _run_game_bounded(
+    fixture: SimulationFixture,
+    *,
+    trace_id: str,
+    provider_mode: str,
+) -> Dict[str, Any]:
+    """Bounded game-θ path with SearchGraphMonitor visit/expansion/prune events."""
+    theta = GameTheoreticTheta.from_dict(fixture.theta or {})
+    stages = fixture.stages or [f"stage_{i}" for i in range(theta.num_stages)]
+    monitor = SearchGraphMonitor()
+    algo = AlgorithmCard.new("bounded_rollout", SearchOperator.ROLLOUT, {"budget": theta.num_stages})
+    root = NodeCard.new("game_root", depth=0, theta_slice=theta.to_dict())
+    monitor.record_visit(root, algo.algorithm_id, span_id=trace_id)
+
+    stage_results: List[Dict[str, Any]] = []
+    current = root
+    for stage_idx, stage_name in enumerate(stages[: theta.num_stages]):
+        monitor.record_expansion(current, algo.algorithm_id, span_id=trace_id)
+        action_idx = theta.action_index_at_stage(stage_idx)
+        vector_slice = theta.stage_slice(stage_idx)
+        action = ActionCard.new(
+            node_id=current.node_id,
+            stage=stage_idx,
+            vector_slice=vector_slice,
+            label=f"action_{action_idx}",
+            discrete_index=action_idx,
+        )
+        child = NodeCard.new(
+            f"{stage_name}:{action_idx}",
+            depth=current.depth + 1,
+            parent_id=current.node_id,
+            theta_slice={"stage": stage_idx, "action_index": action_idx},
+        )
+        monitor.record_visit(child, algo.algorithm_id, span_id=trace_id)
+        if action_idx == 0 and stage_idx > 0:
+            monitor.record_prune(child, "dominated_action", algo.algorithm_id)
+        stage_results.append(
+            {
+                "stage": stage_name,
+                "action_index": action_idx,
+                "vector_slice": vector_slice,
+                "action": action.to_dict(),
+            }
+        )
+        current = child
+
+    graph_report = monitor.snapshot()
+    spans = [_mock_span(n, trace_id) for n in fixture.expected_spans]
+    return {
+        "scenario_type": "game",
+        "path_mode": PathMode.BOUNDED.value,
+        "profile": "game_bounded",
+        "trace_id": trace_id,
+        "provider_mode": provider_mode,
+        "goal": fixture.goal,
+        "theta": theta.to_dict(),
+        "stages": stage_results,
+        "spans": spans,
+        "scenario_count": len(stage_results),
+        "search_graph": graph_report.to_dict(),
+    }
+
+
 def _run_causal_wide(
     fixture: SimulationFixture,
     *,
@@ -238,6 +328,9 @@ class ScenarioSimulationRunner:
             provider_mode = "mock"
 
         trace_id = str(uuid.uuid4())
+        if fixture.is_game_bounded:
+            return _run_game_bounded(fixture, trace_id=trace_id, provider_mode=provider_mode)
+
         if fixture.scenario_type == ScenarioType.ENTERPRISE:
             if fixture.path_mode == PathMode.BOUNDED:
                 return _run_enterprise_bounded(fixture, trace_id=trace_id, provider_mode=provider_mode)
@@ -259,7 +352,12 @@ class ScenarioSimulationRunner:
     ) -> Dict[str, Any]:
         fixtures = load_simulation_fixtures(self.fixtures_path)
         if scenario_type:
-            fixtures = [f for f in fixtures if f.scenario_type.value == scenario_type]
+            fixtures = [
+                f
+                for f in fixtures
+                if f.scenario_type.value == scenario_type
+                and not (scenario_type == "causal" and f.is_game_bounded)
+            ]
         if fixture_ids:
             ids = set(fixture_ids)
             fixtures = [f for f in fixtures if f.fixture_id in ids]

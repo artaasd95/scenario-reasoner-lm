@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "fixtures": [
+    {
+      "fixture_id": "mm_inventory_high",
+      "goal": "Select inventory-skew reasoning under high inventory pressure",
+      "expected_template": "inventory_skew",
+      "theta": {
+        "spread_regime": "normal",
+        "inventory_pressure": "high",
+        "reasoning_strategy_pool": ["inventory_skew", "adverse_selection", "flow_toxicity"],
+        "search_budget": 32
+      }
+    },
+    {
+      "fixture_id": "mm_adverse_wide",
+      "goal": "Adverse-selection template under wide spread regime",
+      "expected_template": "adverse_selection",
+      "theta": {
+        "spread_regime": "wide",
+        "inventory_pressure": "low",
+        "reasoning_strategy_pool": ["inventory_skew", "adverse_selection", "flow_toxicity"],
+        "search_budget": 16
+      }
+    }
+  ]
+}

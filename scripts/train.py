@@ -36,6 +36,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=str, default=None,
                         help="Override output_dir from config")
     parser.add_argument("--wandb", action="store_true", help="Enable Weights & Biases logging")
+    parser.add_argument(
+        "--data-config",
+        type=str,
+        default=None,
+        help="YAML data-platform config (e.g. configs/data/train.yaml)",
+    )
     return parser.parse_args()
 
 
@@ -58,12 +64,30 @@ def main() -> None:
     local_logger: LocalLogger | None = None
     wandb_logger: WandbLogger | None = None
 
+    experiment_meta: dict = {"datasource_id": config.get("data", {}).get("datasource_id", "inline_generator")}
+
     try:
         local_logger = LocalLogger(
             name=config.get("experiment_name", "causal_rlhf"),
             log_dir=str(output_dir / "logs"),
         )
         local_logger.log_config(config)
+
+        if args.data_config:
+            from src.data.pipeline.config import load_pipeline_config
+            from src.data.pipeline.runner import PipelineRunner
+            from src.data.pipeline.source_factory import build_source
+
+            dp_config = load_pipeline_config(args.data_config)
+            experiment_meta["datasource_id"] = dp_config.metadata.get("datasource_id", "pipeline")
+            source = build_source(dp_config.source)
+            pipeline_result = PipelineRunner(dp_config, source=source).run()
+            local_logger.log_step(
+                step=0,
+                metrics={"pipeline_loaded": pipeline_result["stats"].get("loaded", 0)},
+                prefix="data",
+            )
+            logger.info("Data pipeline artifact: %s", pipeline_result.get("output"))
 
         if args.wandb:
             wandb_logger = WandbLogger(
@@ -158,7 +182,10 @@ def main() -> None:
         logger.info("Preference dataset size: %d pairs", len(preference_data))
         local_logger.log_step(
             step=0,
-            metrics={"preference_pairs": len(preference_data)},
+            metrics={
+                "preference_pairs": len(preference_data),
+                "datasource_id": experiment_meta.get("datasource_id"),
+            },
             prefix="train",
         )
 

@@ -41,6 +41,17 @@ class TestLocalLogger:
         assert records[3]["monitor"] == "cot"
         assert all("timestamp" in record for record in records)
 
+    def test_log_metrics_compat(self, tmp_path):
+        logger = LocalLogger(name="metrics_compat", log_dir=str(tmp_path), use_console=False)
+        logger.log_metrics({"loss": 0.5}, step=2, prefix="train")
+        logger.log_metrics({"val_loss": 0.4}, epoch=1, prefix="epoch")
+        logger.close()
+
+        records = _read_metrics_records(tmp_path)
+        events = [r["event"] for r in records]
+        assert "step" in events
+        assert "epoch" in events
+
     def test_context_manager_closes_and_close_is_idempotent(self, tmp_path):
         with LocalLogger(name="ctx", log_dir=str(tmp_path), use_console=False) as logger:
             logger.log_step(step=0, metrics={"count": 1}, prefix="train")

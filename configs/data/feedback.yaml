@@ -1,0 +1,19 @@
+mode: feedback
+metadata:
+  datasource_id: feedback_incoming
+  description: Feedback validation path (apply logic deferred to S10-07)
+  preference_builder_sink: data/processed/preferences
+
+source:
+  type: file
+  path: feedback/incoming
+
+stages:
+  - normalize
+  - label
+
+output_dir: data/processed/feedback
+
+label:
+  path_quality: coherence_weighted
+  chosen_rejected: from_coherence

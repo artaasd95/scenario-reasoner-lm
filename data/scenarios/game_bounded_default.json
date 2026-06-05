@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "fixture_id": "game_bounded_default",
+  "profile": "game_bounded",
+  "scenario_type": "causal",
+  "path_mode": "bounded",
+  "goal": "Bounded game-theoretic staged search with SearchGraphMonitor (mock/smoke)",
+  "theta": {
+    "action_dim": 10,
+    "num_stages": 3,
+    "menu_size": 5,
+    "interaction_mode": "single_agent",
+    "manifold_kind": "box",
+    "seed": 42
+  },
+  "stages": ["stage_0", "stage_1", "stage_2"],
+  "expected_spans": ["search_root", "search_expand", "search_prune"]
+}

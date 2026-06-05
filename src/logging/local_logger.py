@@ -88,6 +88,24 @@ class LocalLogger:
         self._python_logger.info("CONFIG: %s", json.dumps(config))
         self._write_record({"event": "config", "data": config})
 
+    def log_metrics(
+        self,
+        metrics: Dict[str, Any],
+        *,
+        step: Optional[int] = None,
+        epoch: Optional[int] = None,
+        prefix: str = "train",
+    ) -> None:
+        """
+        Compatibility wrapper for callers expecting ``log_metrics``.
+
+        Routes to :meth:`log_step` or :meth:`log_epoch` based on arguments.
+        """
+        if epoch is not None:
+            self.log_epoch(epoch, metrics, prefix=prefix)
+            return
+        self.log_step(step if step is not None else 0, metrics, prefix=prefix)
+
     def log_step(
         self,
         step: int,

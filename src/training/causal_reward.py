@@ -21,6 +21,7 @@ import re
 from typing import Any, Mapping, Optional, Union
 
 from src.scenarios.causal.taxonomy import CausalTheta
+from src.training.reward import normalize_theta
 
 ThetaLike = Union[CausalTheta, Mapping[str, Any]]
 
@@ -112,6 +113,9 @@ class CausalRewardFunction:
         Returns:
             Scalar task reward in ``[0, 1]``.
         """
+        theta, err = normalize_theta(theta)
+        if err:
+            return 0.0
         s_complete = self._chain_completeness(trace, theta)
         s_consist = self._logical_consistency(trace)
         s_cf = self._counterfactual_validity(trace, answer, theta)
@@ -191,6 +195,9 @@ class CausalRewardFunction:
         """Read theta fields from either a CausalTheta object or dataset dict."""
         if theta is None:
             return default
+        normalized, _ = normalize_theta(theta)
+        if normalized is not None and hasattr(normalized, field):
+            return getattr(normalized, field, default)
         if isinstance(theta, Mapping):
             return theta.get(field, default)
         return getattr(theta, field, default)

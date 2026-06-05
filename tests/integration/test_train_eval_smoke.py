@@ -145,7 +145,8 @@ def test_train_main_smoke(monkeypatch, tmp_path):
 
     records = _read_metrics_records(output_dir / "logs")
     step_records = [record for record in records if record["event"] == "step"]
-    assert step_records[0]["metrics"] == {"preference_pairs": 1}
+    assert step_records[0]["metrics"]["preference_pairs"] == 1
+    assert "datasource_id" in step_records[0]["metrics"]
     assert step_records[1]["metrics"]["checkpoint"].endswith("dpo_checkpoint")
 
 

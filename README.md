@@ -97,6 +97,16 @@ Docker (CPU smoke, offline):
 docker compose up enterprise-demo
 ```
 
+## Data platform (S9)
+
+YAML pipelines for normalize → measure → label → split → filter; θ dicts normalize to typed dataclasses at ingest (DP-2026-02).
+
+See [docs/data-platform.md](docs/data-platform.md) and [configs/data/](configs/data/).
+
+```bash
+python scripts/build_dataset.py --config configs/data/train.yaml
+```
+
 ## Getting Started
 
 ```bash

@@ -39,6 +39,14 @@ def parse_args() -> argparse.Namespace:
                         help="Output directory for reports and logs")
     parser.add_argument("--n-eval", type=int, default=50,
                         help="Number of instances to evaluate per θ combination")
+    parser.add_argument(
+        "--eval-config",
+        "--data-config",
+        dest="data_config",
+        type=str,
+        default=None,
+        help="YAML eval data-platform config (e.g. configs/data/eval.yaml)",
+    )
     return parser.parse_args()
 
 
@@ -54,21 +62,43 @@ def main() -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # ── Logging setup ─────────────────────────────────────────────────────────
     from src.logging.local_logger import LocalLogger
 
-    local_logger = LocalLogger(
-        name=config.get("experiment_name", "eval"),
-        log_dir=str(output_dir / "logs"),
-    )
-    local_logger.log_config({**config, "checkpoint": args.checkpoint})
-
-    # ── Load model from checkpoint ────────────────────────────────────────────
-    logger.info("Loading model from checkpoint: %s", args.checkpoint)
+    local_logger: LocalLogger | None = None
     try:
-        import torch
-        from peft import PeftModel
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        local_logger = LocalLogger(
+            name=config.get("experiment_name", "eval"),
+            log_dir=str(output_dir / "logs"),
+        )
+        local_logger.log_config({**config, "checkpoint": args.checkpoint})
+
+        if args.data_config:
+            from src.data.pipeline.config import load_pipeline_config
+            from src.data.pipeline.runner import PipelineRunner
+            from src.data.pipeline.source_factory import build_source
+
+            dp_config = load_pipeline_config(args.data_config)
+            source = build_source(dp_config.source)
+            pipeline_result = PipelineRunner(dp_config, source=source).run()
+            local_logger.log_step(
+                step=0,
+                metrics={
+                    "pipeline_measured": pipeline_result["stats"].get("measured", 0),
+                    "datasource_id": dp_config.metadata.get("datasource_id"),
+                },
+                prefix="data",
+            )
+
+        logger.info("Loading model from checkpoint: %s", args.checkpoint)
+        try:
+            import torch
+            from peft import PeftModel
+            from transformers import AutoModelForCausalLM, AutoTokenizer
+        except ImportError as exc:
+            raise ImportError(
+                "Evaluation requires 'transformers' and 'peft'. "
+                "Install with: pip install transformers peft"
+            ) from exc
 
         tokenizer = AutoTokenizer.from_pretrained(args.checkpoint, trust_remote_code=True)
         if tokenizer.pad_token is None:
@@ -83,72 +113,60 @@ def main() -> None:
         model = PeftModel.from_pretrained(base_model, args.checkpoint)
         model.eval()
         logger.info("Model loaded successfully")
-    except ImportError as exc:
-        raise ImportError(
-            "Evaluation requires 'transformers' and 'peft'. "
-            "Install with: pip install transformers peft"
-        ) from exc
 
-    # ── Build metric registry ─────────────────────────────────────────────────
-    from src.metrics.base_metrics import MetricRegistry
-    from src.metrics.causal_metrics import (
-        CausalChainAccuracy,
-        CounterfactualValidityScore,
-        TrajectoryConsistency,
-    )
-    from src.monitoring.aha_monitor import AhaMonitor
-    from src.monitoring.cot_monitor import CoTMonitor
-    from src.monitoring.tot_monitor import ToTMonitor
+        from src.metrics.base_metrics import MetricRegistry
+        from src.metrics.causal_metrics import (
+            CausalChainAccuracy,
+            CounterfactualValidityScore,
+            TrajectoryConsistency,
+        )
 
-    registry = MetricRegistry()
-    registry.register(CausalChainAccuracy())
-    registry.register(CounterfactualValidityScore())
-    registry.register(TrajectoryConsistency())
+        registry = MetricRegistry()
+        registry.register(CausalChainAccuracy())
+        registry.register(CounterfactualValidityScore())
+        registry.register(TrajectoryConsistency())
 
-    cot_monitor = CoTMonitor()
-    tot_monitor = ToTMonitor()
-    aha_monitor = AhaMonitor()
+        from src.scenarios.causal.taxonomy import CausalThetaSampler
 
-    # ── Build θ-grid ──────────────────────────────────────────────────────────
-    from src.scenarios.causal.taxonomy import CausalThetaSampler
+        scenario_cfg = config.get("scenario", {})
+        sampler = CausalThetaSampler()
+        theta_grid = sampler.grid(
+            chain_lengths=scenario_cfg.get("chain_lengths", [3, 5]),
+            intervention_types=scenario_cfg.get("intervention_types"),
+            domains=scenario_cfg.get("domains"),
+            difficulties=scenario_cfg.get("difficulties"),
+        )
+        logger.info(
+            "Evaluating over %d θ combinations × %d instances each",
+            len(theta_grid),
+            args.n_eval,
+        )
 
-    scenario_cfg = config.get("scenario", {})
-    sampler = CausalThetaSampler()
-    theta_grid = sampler.grid(
-        chain_lengths=scenario_cfg.get("chain_lengths", [3, 5]),
-        intervention_types=scenario_cfg.get("intervention_types"),
-        domains=scenario_cfg.get("domains"),
-        difficulties=scenario_cfg.get("difficulties"),
-    )
-    logger.info("Evaluating over %d θ combinations × %d instances each",
-                len(theta_grid), args.n_eval)
+        from src.evaluation.robustness_eval import RobustnessEvaluator
 
-    # ── Run robustness evaluation ─────────────────────────────────────────────
-    from src.evaluation.robustness_eval import RobustnessEvaluator
+        evaluator = RobustnessEvaluator(
+            model=model,
+            tokenizer=tokenizer,
+            metric_registry=registry,
+            theta_grid=theta_grid,
+            n_eval=args.n_eval,
+        )
+        report = evaluator.evaluate()
 
-    evaluator = RobustnessEvaluator(
-        model=model,
-        tokenizer=tokenizer,
-        metric_registry=registry,
-        theta_grid=theta_grid,
-        n_eval=args.n_eval,
-    )
-    report = evaluator.evaluate()
+        report_path = str(output_dir / "robustness_report.json")
+        evaluator.save_report(report, report_path)
 
-    # ── Save report ───────────────────────────────────────────────────────────
-    report_path = str(output_dir / "robustness_report.json")
-    evaluator.save_report(report, report_path)
+        aggregate = report.get("aggregate", {})
+        local_logger.log_step(step=0, metrics=aggregate, prefix="eval")
 
-    # ── Log aggregate metrics ─────────────────────────────────────────────────
-    aggregate = report.get("aggregate", {})
-    local_logger.log_step(step=0, metrics=aggregate, prefix="eval")
+        logger.info("Aggregate metrics:")
+        for metric_name, value in aggregate.items():
+            logger.info("  %-35s %.4f", metric_name, value)
 
-    logger.info("Aggregate metrics:")
-    for metric_name, value in aggregate.items():
-        logger.info("  %-35s %.4f", metric_name, value)
-
-    local_logger.close()
-    logger.info("Evaluation complete. Report: %s", report_path)
+        logger.info("Evaluation complete. Report: %s", report_path)
+    finally:
+        if local_logger is not None:
+            local_logger.close()
 
 
 if __name__ == "__main__":

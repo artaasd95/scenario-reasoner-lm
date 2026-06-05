@@ -1,0 +1,25 @@
+mode: eval
+metadata:
+  datasource_id: bundled_generator_eval
+  description: Eval pipeline — writes scenario_measurement.json stub
+
+source:
+  type: generator
+  fixture_ids:
+    - enterprise_bounded_default
+    - game_bounded_default
+
+stages:
+  - normalize
+  - measure
+  - label
+  - filter
+
+output_dir: data/processed/eval
+
+filter:
+  drop_infeasible: true
+  feasibility_threshold: 0.15
+
+measure:
+  emit_scenario_measurement: true
