@@ -51,8 +51,10 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_config(path: str) -> dict:
-    with open(path) as f:
-        return json.load(f)
+    from src.training.config_loader import load_training_config
+    from src.training.train_helpers import resolve_training_config
+
+    return resolve_training_config(load_training_config(path))
 
 
 def main() -> None:
@@ -112,7 +114,7 @@ def main() -> None:
         )
         model = PeftModel.from_pretrained(base_model, args.checkpoint)
         model.eval()
-        logger.info("Model loaded successfully")
+        logger.info("Model loaded successfully (model_id=%s)", config.get("model_id", "n/a"))
 
         from src.metrics.base_metrics import MetricRegistry
         from src.metrics.causal_metrics import (
@@ -152,6 +154,12 @@ def main() -> None:
             n_eval=args.n_eval,
         )
         report = evaluator.evaluate()
+        report["metadata"] = {
+            "model_id": config.get("model_id"),
+            "hub_id": config.get("hub_id"),
+            "model_name_or_path": config.get("model_name_or_path"),
+            "checkpoint": args.checkpoint,
+        }
 
         report_path = str(output_dir / "robustness_report.json")
         evaluator.save_report(report, report_path)

@@ -1,0 +1,2 @@
+{"prompt": "If A causes B and B causes C, what happens if we block B?", "chosen": "Step 1: Blocking B interrupts the chain. Therefore C is not caused.", "rejected": "C still happens.", "theta": {"chain_length": 3, "domain": "physical"}, "metadata": {"teacher": "offline-stub"}}
+{"prompt": "Counterfactual: had X not occurred, would Y still happen?", "chosen": "Without X, the causal path to Y is broken. Y would not occur.", "rejected": "Y happens anyway.", "theta": {"intervention_type": "counterfactual"}, "metadata": {"teacher": "offline-stub"}}

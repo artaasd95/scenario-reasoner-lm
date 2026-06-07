@@ -22,6 +22,7 @@ class MeasurementRunMetadata:
     smoke_mode: bool = True
     offline: bool = True
     provider_mode: str = "mock"
+    model_id: str = ""
     eval_set_paths: List[str] = field(default_factory=list)
     run_id: str = ""
     created_at: str = field(
@@ -63,6 +64,7 @@ def build_measurement_report(
     goal_preservation: Optional[Dict[str, Any]] = None,
     smoke_mode: bool = True,
     provider_mode: str = "mock",
+    model_id: str = "",
 ) -> ScenarioMeasurementReport:
     """Assemble report from simulation/metric sub-harness outputs."""
     by_type: Dict[str, List[Dict[str, float]]] = {}
@@ -101,6 +103,7 @@ def build_measurement_report(
         smoke_mode=smoke_mode,
         offline=True,
         provider_mode=provider_mode,
+        model_id=model_id,
         eval_set_paths=[
             "data/eval/simulation_fixtures.json",
             "data/eval/goal_preservation_fixtures.jsonl",

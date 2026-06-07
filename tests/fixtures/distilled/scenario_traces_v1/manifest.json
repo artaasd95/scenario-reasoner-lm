@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0.0",
+  "name": "scenario_traces_v1",
+  "teacher": "offline-stub",
+  "seed": 42,
+  "fixture_refs": ["data/eval/simulation_fixtures.json"],
+  "dpo_pairs_file": "dpo_pairs.jsonl",
+  "sft_file": "sft.jsonl",
+  "row_counts": {"dpo": 2, "sft": 1}
+}

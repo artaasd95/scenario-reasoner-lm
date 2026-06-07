@@ -140,6 +140,20 @@ python scripts/evaluate.py \
   --n-eval 50
 ```
 
+Unsloth + Qwen portfolio (set `SCENARIO_MODELS_ROOT` and optionally `SCENARIO_TRAINED_MODELS_ROOT`):
+
+```bash
+pip install -e ".[unsloth]"
+python scripts/download_models.py --model-id qwen3-0.6b
+python scripts/train.py --config configs/training/unsloth_dpo_example.yaml
+python scripts/compare_pre_post_train.py \
+  --model-id qwen3-0.6b \
+  --adapter-path $SCENARIO_TRAINED_MODELS_ROOT/qwen3-0.6b/unsloth_dpo_qwen3_0.6b \
+  --output docs/eval/results/pre_post/qwen3-0.6b_smoke
+```
+
+See [docs/training.md](docs/training.md) and [docs/models.md](docs/models.md).
+
 ## Components
 
 ### Enterprise risk demo (10-K)
@@ -172,11 +186,16 @@ python scripts/evaluate.py \
 
 ### Training And Evaluation
 - `src/models/model_wrapper.py` - Deferred-import QLoRA/LoRA model loader.
+- `src/models/model_registry.py` - Qwen portfolio registry (`SCENARIO_MODELS_ROOT`).
+- `src/training/backends/` - TRL and Unsloth DPO backends (`training.backend`).
 - `src/training/causal_reward.py` - Rule-based causal task reward.
 - `src/training/reward_composer.py` - Task, CoT, ToT, and Aha reward composition.
 - `src/training/preference_builder.py` - DPO preference-pair construction.
 - `src/training/rlhf_trainer.py` - TRL DPO trainer wrapper.
+- `src/evaluation/pre_post_compare.py` - Base vs post-train comparison harness.
 - `src/evaluation/robustness_eval.py` - Per-theta robustness evaluation and JSON reporting.
+- `docs/training.md` - Training backends, GPU requirements, distillation.
+- `docs/models.md` - Canonical Qwen model lineup and tiers.
 
 ### Metrics, Losses, Monitoring, Logging
 - `src/metrics/base_metrics.py` and `src/metrics/causal_metrics.py` - Metric registry and causal metrics.
@@ -192,9 +211,10 @@ sample count, seed, checkpoint/source, and report path. Metrics should come from
 `robustness_report.json` aggregate values. Use `TBD` for cells that have not
 been run or verified yet.
 
-| Experiment | Model | Config | Theta Grid | N Eval | Seed | Causal Chain Accuracy | Counterfactual Validity | Trajectory Consistency | Report |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Baseline causal RLHF | `mistralai/Mistral-7B-Instruct-v0.2` | `experiments/configs/causal_rlhf_config.json` | chain lengths `[3, 5]`; interventions `direct`, `counterfactual`; domains `physical`, `social`; difficulties `easy`, `medium` | `50` | `42` | TBD | TBD | TBD | TBD |
+| Experiment | Model | Config | Theta Grid | N Eval | Seed | Causal Chain Accuracy | Counterfactual Validity | Trajectory Consistency | Pre/Post Δ | Report |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Baseline causal RLHF | `mistralai/Mistral-7B-Instruct-v0.2` | `experiments/configs/causal_rlhf_config.json` | chain lengths `[3, 5]`; interventions `direct`, `counterfactual`; domains `physical`, `social`; difficulties `easy`, `medium` | `50` | `42` | TBD | TBD | TBD | — | TBD |
+| Unsloth DPO Qwen3-0.6B | `qwen3-0.6b` | `configs/training/unsloth_dpo_example.yaml` | chain length `[3]`; intervention `direct`; domain `physical`; difficulty `easy` | fixtures | `42` | TBD | TBD | TBD | TBD (`on_target_composite`) | `docs/eval/results/pre_post/` |
 
 ## Project Structure
 

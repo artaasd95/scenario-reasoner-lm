@@ -1,0 +1,38 @@
+schema_version: "1.0.0"
+models_root_env: SCENARIO_MODELS_ROOT
+trained_root_env: SCENARIO_TRAINED_MODELS_ROOT
+
+models:
+  qwen3-4b-instruct-2507:
+    hub_id: Qwen/Qwen3-4B-Instruct-2507
+    tier: large
+  qwen3-4b:
+    hub_id: Qwen/Qwen3-4B
+    tier: large
+  qwen3-0.6b:
+    hub_id: Qwen/Qwen3-0.6B
+    tier: smoke
+  qwen2.5-coder-3b:
+    hub_id: Qwen/Qwen2.5-Coder-3B
+    tier: mid
+  qwen2.5-0.5b:
+    hub_id: Qwen/Qwen2.5-0.5B
+    tier: smoke
+  qwen2.5-3b:
+    hub_id: Qwen/Qwen2.5-3B
+    tier: mid
+  qwen2.5-7b:
+    hub_id: Qwen/Qwen2.5-7B
+    tier: large
+
+tiers:
+  smoke:
+    - qwen3-0.6b
+    - qwen2.5-0.5b
+  mid:
+    - qwen2.5-coder-3b
+    - qwen2.5-3b
+  large_gated:
+    - qwen3-4b
+    - qwen3-4b-instruct-2507
+    - qwen2.5-7b

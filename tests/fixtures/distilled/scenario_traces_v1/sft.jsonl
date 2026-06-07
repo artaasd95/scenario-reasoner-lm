@@ -1,0 +1,1 @@
+{"input": "If A causes B, what is the effect of intervening on A?", "reasoning_trace": "Step 1: A is the root cause. Step 2: Intervening on A changes downstream effects.", "output": "Downstream nodes change accordingly.", "theta": {"chain_length": 2, "domain": "physical"}}

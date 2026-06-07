@@ -47,6 +47,7 @@ def run_smoke_measurement(
     *,
     fixtures_path: Optional[Path] = None,
     output_dir: Optional[Path] = None,
+    model_id: str = "",
 ) -> ScenarioMeasurementReport:
     """
     Run measurement on bundled fixtures only (no network, no paid keys).
@@ -77,6 +78,7 @@ def run_smoke_measurement(
         goal_preservation=goal_eval,
         smoke_mode=True,
         provider_mode="mock",
+        model_id=model_id,
     )
 
     if output_dir:

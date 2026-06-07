@@ -1,0 +1,65 @@
+# Unsloth DPO example — smoke-tier Qwen3-0.6B (S13-01)
+# Requires: SCENARIO_MODELS_ROOT with Qwen/Qwen3-0.6B cached locally
+# Install: pip install -e ".[unsloth]"
+
+experiment_name: unsloth_dpo_qwen3_0.6b
+project: scenario-reasoner-lm
+
+model_id: qwen3-0.6b
+
+training:
+  backend: unsloth
+  policy: causal_default
+  data_source: inline
+  monitor_gates: false
+
+use_qlora: true
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+target_modules:
+  - q_proj
+  - v_proj
+  - k_proj
+  - o_proj
+device_map: auto
+
+max_seq_length: 2048
+max_prompt_length: 1024
+
+batch_size: 2
+gradient_accumulation: 4
+learning_rate: 1.0e-4
+num_epochs: 1
+lr_scheduler: cosine
+warmup_ratio: 0.1
+bf16: true
+fp16: false
+optimizer: paged_adamw_8bit
+logging_steps: 10
+save_steps: 100
+
+dpo_beta: 0.1
+
+reward_weights:
+  alpha_cot: 0.15
+  beta_tot: 0.10
+  gamma_aha: 0.05
+
+scenario:
+  chain_lengths: [3]
+  intervention_types: [direct]
+  domains: [physical]
+  difficulties: [easy]
+  n_per_combo: 4
+
+preference_builder:
+  num_samples: 2
+  temperature: 0.8
+  max_new_tokens: 128
+
+data:
+  train_frac: 0.9
+  seed: 42
+
+output_dir: experiments/results/unsloth_dpo_qwen3_0.6b

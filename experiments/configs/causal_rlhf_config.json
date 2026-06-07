@@ -1,5 +1,5 @@
 {
-  "_comment": "Causal/counterfactual RLHF training configuration for Scenario Reasoner LM.",
+  "_comment": "Causal/counterfactual RLHF training configuration for Scenario Reasoner LM. For Qwen portfolio models use model_id in configs/training/unsloth_dpo_example.yaml and docs/models.md.",
 
   "experiment_name": "causal_rlhf_run_01",
   "project": "scenario-reasoner-lm",

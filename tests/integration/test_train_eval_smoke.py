@@ -106,9 +106,8 @@ class _DummyWrapper:
 
 
 def test_train_main_smoke(monkeypatch, tmp_path):
-    from src.models.model_wrapper import ModelWrapper
+    from src.training.backends.trl_backend import TrlBackend
     from src.training.preference_builder import PreferenceBuilder
-    from src.training.rlhf_trainer import RLHFTrainer
 
     train_script = _load_script("train")
     output_dir = tmp_path / "train-run"
@@ -122,9 +121,9 @@ def test_train_main_smoke(monkeypatch, tmp_path):
         ["train.py", "--config", str(config_path), "--output-dir", str(output_dir)],
     )
     monkeypatch.setattr(
-        ModelWrapper,
-        "from_config",
-        classmethod(lambda cls, config: _DummyWrapper()),
+        TrlBackend,
+        "load_model",
+        lambda self, config: _DummyWrapper().load(),
     )
     monkeypatch.setattr(
         PreferenceBuilder,
@@ -136,9 +135,11 @@ def test_train_main_smoke(monkeypatch, tmp_path):
         }],
     )
     monkeypatch.setattr(
-        RLHFTrainer,
+        TrlBackend,
         "train",
-        lambda self: str(self.output_dir / "dpo_checkpoint"),
+        lambda self, model, tokenizer, preference_data, config, **kwargs: str(
+            Path(kwargs.get("output_dir", output_dir)) / "dpo_checkpoint"
+        ),
     )
 
     train_script.main()

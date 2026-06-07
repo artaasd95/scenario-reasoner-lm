@@ -62,6 +62,7 @@ def run_eval_measurement_bundle(
     *,
     output_dir: Path,
     fixtures_path: Optional[Path] = None,
+    model_id: str = "",
 ) -> Dict[str, Any]:
     """
     Run smoke measurement and write scenario_measurement.json + robustness stub.
@@ -72,6 +73,7 @@ def run_eval_measurement_bundle(
     report: ScenarioMeasurementReport = run_smoke_measurement(
         fixtures_path=fixtures_path,
         output_dir=None,
+        model_id=model_id,
     )
     paths: List[Dict[str, Any]] = []
     for row in report.per_theta_slice:
@@ -87,7 +89,8 @@ def run_eval_measurement_bundle(
         )
 
     meas_path = output_dir / "scenario_measurement.json"
-    meas_path.write_text(json.dumps({"paths": paths}, indent=2), encoding="utf-8")
+    payload = {"model_id": model_id or report.metadata.model_id, "paths": paths}
+    meas_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     robustness = {
         "aggregate": report.aggregate,
