@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Tuple
 
-from src.models.model_wrapper import ModelWrapper
+from src.models.loaders.unified import UnifiedModelLoader
 from src.training.rlhf_trainer import RLHFTrainer
 
 
@@ -12,8 +12,16 @@ class TrlBackend:
     name = "trl"
 
     def load_model(self, config: Dict[str, Any]) -> Tuple[Any, Any]:
-        wrapper = ModelWrapper.from_config(config)
-        return wrapper.load()
+        if config.get("checkpoint") or config.get("adapter_path"):
+            result = UnifiedModelLoader(config).load()
+            return result.model, result.tokenizer
+        try:
+            from src.models.model_wrapper import ModelWrapper
+            wrapper = ModelWrapper.from_config(config)
+            return wrapper.load()
+        except Exception:
+            result = UnifiedModelLoader(config).load()
+            return result.model, result.tokenizer
 
     def train(
         self,

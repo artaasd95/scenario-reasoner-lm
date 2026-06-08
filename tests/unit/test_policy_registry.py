@@ -23,3 +23,12 @@ class TestPolicyRegistry:
         rng = random.Random(42)
         kind = reg.sample_theta_kind(rng)
         assert kind in reg.default().theta_mix
+
+    def test_two_policies_different_resolved_config(self):
+        from src.training.train_helpers import resolve_training_config
+
+        base = {"model_name_or_path": "/local/model", "training": {}}
+        causal = resolve_training_config({**base, "policy_id": "default_causal"})
+        mixed = resolve_training_config({**base, "policy_id": "mixed_scenario"})
+        assert causal["reward_weights"] != mixed["reward_weights"]
+        assert causal["theta_mix"] != mixed["theta_mix"]

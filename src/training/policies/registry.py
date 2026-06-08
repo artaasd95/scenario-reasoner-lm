@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+import yaml
 
 
 @dataclass
@@ -45,6 +48,23 @@ class PolicyRegistry:
     def default(self) -> TrainingPolicy:
         return self.get("causal_default")
 
+    def load_yaml_dir(self, directory: str | Path) -> None:
+        """Load policy YAML files from experiments/configs/policies/."""
+        root = Path(directory)
+        if not root.is_dir():
+            return
+        for path in sorted(root.glob("*.yaml")):
+            data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+            name = data.get("policy_id") or path.stem
+            self.register(
+                TrainingPolicy(
+                    name=name,
+                    theta_mix=dict(data.get("theta_mix", {})),
+                    reward_weights=dict(data.get("reward_weights", {})),
+                    monitor_gates=dict(data.get("monitor_gates", {})),
+                )
+            )
+
     @classmethod
     def with_defaults(cls) -> "PolicyRegistry":
         reg = cls()
@@ -56,11 +76,19 @@ class PolicyRegistry:
         )
         reg.register(
             TrainingPolicy(
+                name="default_causal",
+                theta_mix={"causal": 1.0},
+            )
+        )
+        reg.register(
+            TrainingPolicy(
                 name="mixed_scenario",
                 theta_mix={"causal": 0.5, "enterprise": 0.3, "game": 0.2},
                 reward_weights={"alpha_cot": 0.12, "beta_tot": 0.12, "gamma_aha": 0.06},
             )
         )
+        policies_dir = Path(__file__).resolve().parents[3] / "experiments" / "configs" / "policies"
+        reg.load_yaml_dir(policies_dir)
         return reg
 
     def sample_theta_kind(self, rng_mod: Any) -> str:

@@ -63,6 +63,7 @@ def run_eval_measurement_bundle(
     output_dir: Path,
     fixtures_path: Optional[Path] = None,
     model_id: str = "",
+    write_robustness: bool = True,
 ) -> Dict[str, Any]:
     """
     Run smoke measurement and write scenario_measurement.json + robustness stub.
@@ -92,17 +93,18 @@ def run_eval_measurement_bundle(
     payload = {"model_id": model_id or report.metadata.model_id, "paths": paths}
     meas_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
-    robustness = {
-        "aggregate": report.aggregate,
-        "per_scenario_type": report.per_scenario_type,
-        "schema_version": report.schema_version,
-    }
+    errors = validate_measurement_contract(json.loads(meas_path.read_text(encoding="utf-8")))
     robustness_path = output_dir / "robustness_report.json"
-    robustness_path.write_text(json.dumps(robustness, indent=2), encoding="utf-8")
-
-    errors = validate_measurement_contract(json.loads(meas_path.read_text()))
-    return {
+    result: Dict[str, Any] = {
         "scenario_measurement": str(meas_path),
-        "robustness_report": str(robustness_path),
         "contract_errors": errors,
     }
+    if write_robustness:
+        robustness = {
+            "aggregate": report.aggregate,
+            "per_scenario_type": report.per_scenario_type,
+            "schema_version": report.schema_version,
+        }
+        robustness_path.write_text(json.dumps(robustness, indent=2), encoding="utf-8")
+        result["robustness_report"] = str(robustness_path)
+    return result

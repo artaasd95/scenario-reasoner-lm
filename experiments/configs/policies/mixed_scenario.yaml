@@ -1,0 +1,13 @@
+policy_id: mixed_scenario
+theta_mix:
+  causal: 0.5
+  enterprise: 0.3
+  game: 0.2
+reward_weights:
+  alpha_cot: 0.12
+  beta_tot: 0.12
+  gamma_aha: 0.06
+monitor_gates:
+  cot_min_steps: 1.0
+  tot_min_branches: 1.0
+  aha_min_moments: 0.0

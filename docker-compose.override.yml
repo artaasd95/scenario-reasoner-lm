@@ -1,0 +1,19 @@
+# Local dev overrides — copy to customize (no secrets committed)
+services:
+  scenario-api:
+    volumes:
+      - ./configs:/app/configs:ro
+      - ./data:/app/data
+    environment:
+      - SCENARIO_PROVIDER=mock
+      - LOG_LEVEL=debug
+
+  review-ui:
+    profiles: ["review"]
+    build: .
+    ports:
+      - "8502:8502"
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+    command: streamlit run apps/review_ui.py --server.address=0.0.0.0 --server.port=8502

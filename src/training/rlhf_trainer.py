@@ -93,20 +93,24 @@ class RLHFTrainer:
         hf_dataset = hf_datasets.Dataset.from_list(self.preference_data)
 
         dpo_config = self._build_dpo_config()
+        trainer_callbacks = self._build_callbacks()
 
         trainer = DPOTrainer(
             model=self.model,
-            ref_model=None,  # implicit reference via PEFT adapter toggling
+            ref_model=None,
             args=dpo_config,
             train_dataset=hf_dataset,
             tokenizer=self.tokenizer,
             beta=self.config.get("dpo_beta", 0.1),
             max_length=self.config.get("max_seq_length", 2048),
             max_prompt_length=self.config.get("max_prompt_length", 1024),
+            callbacks=trainer_callbacks,
         )
 
         logger.info("Starting DPO training — %d epochs", self.config.get("num_epochs", 3))
         trainer.train()
+
+        self._log_callback_outputs()
 
         checkpoint_path = str(self.output_dir / "dpo_checkpoint")
         trainer.save_model(checkpoint_path)
@@ -115,6 +119,48 @@ class RLHFTrainer:
         return checkpoint_path
 
     # ── Internals ─────────────────────────────────────────────────────────────
+
+    def _build_callbacks(self) -> list:
+        training_cfg = self.config.get("training", {})
+        monitor = training_cfg.get("monitor_gates") or self.config.get("monitor_gates")
+        if not monitor:
+            return []
+
+        from transformers import TrainerCallback
+        from src.training.callbacks.reward_theta_callbacks import RewardDecompositionCallback
+
+        reward_cb = RewardDecompositionCallback()
+        self._reward_callback = reward_cb
+        local_logger = self.config.get("_local_logger")
+
+        class _RewardLogCallback(TrainerCallback):
+            def on_log(self, args, state, control, logs=None, **kwargs):
+                if logs:
+                    breakdown = {
+                        k: float(v)
+                        for k, v in logs.items()
+                        if isinstance(v, (int, float))
+                    }
+                    if breakdown:
+                        reward_cb.on_step_end(breakdown)
+
+        callbacks: list = [_RewardLogCallback()]
+        if training_cfg.get("early_stop_theta_stratified"):
+            from src.training.callbacks.reward_theta_callbacks import ThetaStratifiedEarlyStopCallback
+            self._theta_stop_callback = ThetaStratifiedEarlyStopCallback()
+            callbacks.append(self._theta_stop_callback)  # type: ignore[arg-type]
+        if local_logger is not None:
+            self._callback_local_logger = local_logger
+        return callbacks
+
+    def _log_callback_outputs(self) -> None:
+        reward_cb = getattr(self, "_reward_callback", None)
+        local_logger = getattr(self, "_callback_local_logger", None)
+        if reward_cb is None or local_logger is None:
+            return
+        agg = reward_cb.aggregate()
+        if agg:
+            local_logger.log_step(step=0, metrics=agg, prefix="callback/reward_decomposition")
 
     def _build_dpo_config(self):
         """Construct a TRL ``DPOConfig`` from the project config dict."""

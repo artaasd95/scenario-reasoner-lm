@@ -13,6 +13,10 @@ import sys
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
+import pytest
+
+pytestmark = pytest.mark.smoke
+
 
 def _load_script(name: str):
     script_path = Path(__file__).resolve().parents[2] / "scripts" / f"{name}.py"
@@ -161,43 +165,15 @@ class _DummyTokenizer:
     eos_token = "<eos>"
 
 
-class _DummyAutoTokenizer:
-    @staticmethod
-    def from_pretrained(*args, **kwargs):
-        return _DummyTokenizer()
-
-
-class _DummyAutoModelForCausalLM:
-    @staticmethod
-    def from_pretrained(*args, **kwargs):
-        return SimpleNamespace()
-
-
-class _DummyPeftModel:
-    @staticmethod
-    def from_pretrained(*args, **kwargs):
-        return _DummyModel()
-
-
 def test_evaluate_main_smoke(monkeypatch, tmp_path):
     from src.evaluation.robustness_eval import RobustnessEvaluator
+    from src.models.loaders.unified import LoadResult
 
     evaluate_script = _load_script("evaluate")
     output_dir = tmp_path / "eval-run"
     config_path = tmp_path / "config.json"
     _write_config(config_path, tmp_path / "train-run")
 
-    torch_module = ModuleType("torch")
-    torch_module.bfloat16 = "bfloat16"
-    peft_module = ModuleType("peft")
-    peft_module.PeftModel = _DummyPeftModel
-    transformers_module = ModuleType("transformers")
-    transformers_module.AutoModelForCausalLM = _DummyAutoModelForCausalLM
-    transformers_module.AutoTokenizer = _DummyAutoTokenizer
-
-    monkeypatch.setitem(sys.modules, "torch", torch_module)
-    monkeypatch.setitem(sys.modules, "peft", peft_module)
-    monkeypatch.setitem(sys.modules, "transformers", transformers_module)
     monkeypatch.setattr(
         sys,
         "argv",
@@ -212,6 +188,15 @@ def test_evaluate_main_smoke(monkeypatch, tmp_path):
             "--n-eval",
             "1",
         ],
+    )
+    monkeypatch.setattr(
+        "src.models.loaders.unified.UnifiedModelLoader.load",
+        lambda self: LoadResult(
+            model=_DummyModel(),
+            tokenizer=_DummyTokenizer(),
+            source="mock",
+            metadata={},
+        ),
     )
     monkeypatch.setattr(
         RobustnessEvaluator,
@@ -242,3 +227,4 @@ def test_evaluate_main_smoke(monkeypatch, tmp_path):
     assert report["aggregate"]["causal_chain_accuracy"] == 1.0
     assert eval_step["prefix"] == "eval"
     assert eval_step["metrics"]["trajectory_consistency"] == 1.0
+    assert (output_dir / "scenario_measurement.json").is_file()

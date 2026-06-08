@@ -92,29 +92,23 @@ def main() -> None:
             )
 
         logger.info("Loading model from checkpoint: %s", args.checkpoint)
-        try:
-            import torch
-            from peft import PeftModel
-            from transformers import AutoModelForCausalLM, AutoTokenizer
-        except ImportError as exc:
-            raise ImportError(
-                "Evaluation requires 'transformers' and 'peft'. "
-                "Install with: pip install transformers peft"
-            ) from exc
+        from src.models.loaders.unified import UnifiedModelLoader
 
-        tokenizer = AutoTokenizer.from_pretrained(args.checkpoint, trust_remote_code=True)
-        if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
-
-        base_model = AutoModelForCausalLM.from_pretrained(
-            config["model_name_or_path"],
-            torch_dtype=torch.bfloat16,
-            device_map="auto",
-            trust_remote_code=True,
+        load_cfg = {
+            **config,
+            "checkpoint": args.checkpoint,
+            "adapter_path": args.checkpoint,
+        }
+        load_result = UnifiedModelLoader(load_cfg).load()
+        model = load_result.model
+        tokenizer = load_result.tokenizer
+        if hasattr(model, "eval"):
+            model.eval()
+        logger.info(
+            "Model loaded via %s (model_id=%s)",
+            load_result.source,
+            config.get("model_id", "n/a"),
         )
-        model = PeftModel.from_pretrained(base_model, args.checkpoint)
-        model.eval()
-        logger.info("Model loaded successfully (model_id=%s)", config.get("model_id", "n/a"))
 
         from src.metrics.base_metrics import MetricRegistry
         from src.metrics.causal_metrics import (
@@ -163,6 +157,15 @@ def main() -> None:
 
         report_path = str(output_dir / "robustness_report.json")
         evaluator.save_report(report, report_path)
+
+        from src.evaluation.scenario_measurement import run_eval_measurement_bundle
+
+        meas_result = run_eval_measurement_bundle(
+            output_dir=output_dir,
+            model_id=str(config.get("model_id", "")),
+            write_robustness=False,
+        )
+        logger.info("Scenario measurement: %s", meas_result.get("scenario_measurement"))
 
         aggregate = report.get("aggregate", {})
         local_logger.log_step(step=0, metrics=aggregate, prefix="eval")

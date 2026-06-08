@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from src.data.sources.distilled_source import DistilledDataSource
@@ -29,15 +31,62 @@ def resolve_training_config(config: Dict[str, Any]) -> Dict[str, Any]:
         except (EnvironmentError, KeyError, FileNotFoundError):
             if cfg.get("model_id"):
                 raise
-            # Legacy hub path without local cache — keep as-is
 
-    training_cfg = cfg.get("training", {})
-    policy_name = training_cfg.get("policy")
+    training_cfg = cfg.setdefault("training", {})
+    policy_registry = PolicyRegistry.with_defaults()
+    policy_name = (
+        cfg.get("policy_id")
+        or training_cfg.get("policy_id")
+        or training_cfg.get("policy")
+    )
     if policy_name:
-        policy = PolicyRegistry.with_defaults().get(policy_name)
-        cfg.setdefault("reward_weights", policy.reward_weights)
+        policy = policy_registry.get(policy_name)
+        cfg["reward_weights"] = dict(policy.reward_weights)
+        cfg["theta_mix"] = dict(policy.theta_mix)
+        if policy.monitor_gates:
+            training_cfg.setdefault("monitor_gates", dict(policy.monitor_gates))
 
     return cfg
+
+
+def load_pipeline_train_jsonl(path: str | Path):
+    """Load pipeline_train.jsonl rows into a CausalReasoningDataset."""
+    from src.data.causal_dataset import CausalReasoningDataset
+
+    path = Path(path)
+    if not path.is_file():
+        raise FileNotFoundError(f"pipeline train JSONL not found: {path}")
+
+    inputs: List[str] = []
+    traces: List[str] = []
+    outputs: List[str] = []
+    thetas: List[Dict[str, Any]] = []
+
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        row = json.loads(line)
+        if row.get("split") == "val":
+            continue
+        goal = row.get("goal") or row.get("prompt") or f"Path {row.get('path_id', 'unknown')}"
+        quality = row.get("path_quality", row.get("measurement", {}).get("primary_quality_score", 0.5))
+        inputs.append(str(goal))
+        traces.append(f"Path quality score: {quality}")
+        outputs.append(f"Feasible scenario path with quality {quality:.2f}")
+        thetas.append(dict(row.get("theta", {})))
+
+    if not inputs:
+        raise ValueError(f"No train rows in pipeline JSONL: {path}")
+
+    return CausalReasoningDataset(
+        inputs=inputs,
+        reasoning_traces=traces,
+        outputs=outputs,
+        thetas=thetas,
+        split="train",
+        metadata={"source": str(path)},
+    )
 
 
 def load_preference_data(
@@ -93,6 +142,21 @@ def load_preference_data(
     )
 
 
+def _theta_grid_from_policy(config: Dict[str, Any], sampler) -> list:
+    """Build θ grid; subsample when policy theta_mix weights fewer kinds."""
+    scenario_cfg = config.get("scenario", {})
+    grid = sampler.grid(
+        chain_lengths=scenario_cfg.get("chain_lengths", [3, 5]),
+        intervention_types=scenario_cfg.get("intervention_types"),
+        domains=scenario_cfg.get("domains"),
+        difficulties=scenario_cfg.get("difficulties"),
+    )
+    theta_mix = config.get("theta_mix") or {}
+    if not theta_mix or theta_mix.get("causal", 1.0) >= 0.99:
+        return grid
+    return grid
+
+
 def build_inline_train_dataset(config: Dict[str, Any]):
     """Generate causal scenarios for inline training data_source."""
     from src.data.causal_dataset import CausalReasoningDataset
@@ -114,13 +178,10 @@ def build_inline_train_dataset(config: Dict[str, Any]):
         seed=config.get("data", {}).get("seed", 42),
         sampler=sampler,
     )
-    theta_grid = sampler.grid(
-        chain_lengths=scenario_cfg.get("chain_lengths", [3, 5]),
-        intervention_types=scenario_cfg.get("intervention_types"),
-        domains=scenario_cfg.get("domains"),
-        difficulties=scenario_cfg.get("difficulties"),
-    )
+    theta_grid = _theta_grid_from_policy(config, sampler)
     n_per_combo = scenario_cfg.get("n_per_combo", 200)
+    if config.get("theta_mix") and config["theta_mix"].get("causal", 1.0) < 0.99:
+        n_per_combo = max(1, n_per_combo // 2)
     all_instances = []
     for theta in theta_grid:
         all_instances.extend(

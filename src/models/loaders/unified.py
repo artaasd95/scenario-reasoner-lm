@@ -102,31 +102,26 @@ class UnifiedModelLoader:
         )
 
     def _load_from_checkpoint(self, path: Path) -> LoadResult:
-        index = path / "model.safetensors.index.json"
-        if index.is_file():
-            meta = json.loads(index.read_text(encoding="utf-8"))
-            return LoadResult(
-                model=None,
-                tokenizer=None,
-                source="safetensors_index",
-                metadata={
-                    "index": str(index),
-                    "weight_map_keys": len(meta.get("weight_map", {})),
-                },
-            )
-
         try:
             from transformers import AutoModelForCausalLM, AutoTokenizer
         except ImportError as exc:
             raise ImportError("transformers required for checkpoint load") from exc
 
+        index = path / "model.safetensors.index.json"
         tokenizer = AutoTokenizer.from_pretrained(str(path), trust_remote_code=True)
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
         model = AutoModelForCausalLM.from_pretrained(str(path), trust_remote_code=True)
+        metadata: Dict[str, Any] = {"path": str(path)}
+        if index.is_file():
+            meta = json.loads(index.read_text(encoding="utf-8"))
+            metadata["safetensors_index"] = str(index)
+            metadata["weight_map_keys"] = len(meta.get("weight_map", {}))
         return LoadResult(
             model=model,
             tokenizer=tokenizer,
             source="local",
-            metadata={"path": str(path)},
+            metadata=metadata,
         )
 
 

@@ -55,6 +55,7 @@ def main() -> None:
     from src.training.config_loader import load_training_config
     from src.training.train_helpers import (
         build_inline_train_dataset,
+        load_pipeline_train_jsonl,
         load_preference_data,
         resolve_training_config,
     )
@@ -84,7 +85,9 @@ def main() -> None:
             log_dir=str(output_dir / "logs"),
         )
         local_logger.log_config(config)
+        config["_local_logger"] = local_logger
 
+        pipeline_jsonl_path: str | None = None
         if args.data_config:
             from src.data.pipeline.config import load_pipeline_config
             from src.data.pipeline.runner import PipelineRunner
@@ -94,12 +97,15 @@ def main() -> None:
             experiment_meta["datasource_id"] = dp_config.metadata.get("datasource_id", "pipeline")
             source = build_source(dp_config.source)
             pipeline_result = PipelineRunner(dp_config, source=source).run()
+            pipeline_jsonl_path = pipeline_result.get("output")
+            config.setdefault("training", {})["data_source"] = "pipeline"
+            config["pipeline_train_jsonl"] = pipeline_jsonl_path
             local_logger.log_step(
                 step=0,
                 metrics={"pipeline_loaded": pipeline_result["stats"].get("loaded", 0)},
                 prefix="data",
             )
-            logger.info("Data pipeline artifact: %s", pipeline_result.get("output"))
+            logger.info("Data pipeline artifact: %s", pipeline_jsonl_path)
 
         if args.wandb:
             wandb_logger = WandbLogger(
@@ -112,7 +118,16 @@ def main() -> None:
         data_source = training_cfg.get("data_source", "inline")
         train_dataset = None
 
-        if data_source == "inline":
+        if data_source == "pipeline":
+            jsonl_path = config.get("pipeline_train_jsonl") or pipeline_jsonl_path
+            if not jsonl_path:
+                raise ValueError("pipeline data_source requires --data-config or pipeline_train_jsonl")
+            logger.info("Loading training data from pipeline JSONL: %s", jsonl_path)
+            train_dataset = load_pipeline_train_jsonl(jsonl_path)
+            n_theta = len({str(train_dataset[i].get("theta")) for i in range(len(train_dataset))})
+            n_instances = len(train_dataset)
+            logger.info("Loaded %d instances from pipeline (%d θ buckets)", n_instances, n_theta)
+        elif data_source == "inline":
             logger.info("Generating causal scenarios from θ-grid ...")
             train_dataset, n_theta, n_instances = build_inline_train_dataset(config)
             logger.info(

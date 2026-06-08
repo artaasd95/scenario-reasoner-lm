@@ -122,6 +122,7 @@ class UnslothBackend:
             beta=config.get("dpo_beta", 0.1),
             max_length=config.get("max_seq_length", 2048),
             max_prompt_length=config.get("max_prompt_length", 1024),
+            callbacks=callbacks,
         )
 
         logger.info(
@@ -130,6 +131,17 @@ class UnslothBackend:
             config.get("num_epochs", 3),
         )
         trainer.train()
+
+        local_logger = config.get("_local_logger")
+        if local_logger and callbacks:
+            from src.training.callbacks.reward_theta_callbacks import RewardDecompositionCallback
+            for cb in callbacks:
+                if isinstance(cb, RewardDecompositionCallback):
+                    agg = cb.aggregate()
+                    if agg:
+                        local_logger.log_step(
+                            step=0, metrics=agg, prefix="callback/reward_decomposition"
+                        )
 
         checkpoint_path = str(out / "dpo_checkpoint")
         trainer.save_model(checkpoint_path)

@@ -29,10 +29,11 @@
 
   "dpo_beta": 0.1,
 
-  "reward_weights": {
-    "alpha_cot": 0.15,
-    "beta_tot": 0.10,
-    "gamma_aha": 0.05
+  "policy_id": "default_causal",
+
+  "training": {
+    "policy_id": "default_causal",
+    "data_source": "inline"
   },
 
   "scenario": {

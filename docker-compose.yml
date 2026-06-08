@@ -1,6 +1,22 @@
-# Enterprise risk demo — CPU smoke path (default) vs optional GPU research path
+# Scenario API (default milestone exit) + enterprise demo (optional profile)
 services:
+  scenario-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.serve
+    ports:
+      - "8000:8000"
+    environment:
+      - SCENARIO_PROVIDER=mock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
   enterprise-demo:
+    profiles: ["demo"]
     build: .
     ports:
       - "8501:8501"

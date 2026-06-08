@@ -1,0 +1,11 @@
+policy_id: default_causal
+theta_mix:
+  causal: 1.0
+reward_weights:
+  alpha_cot: 0.15
+  beta_tot: 0.10
+  gamma_aha: 0.05
+monitor_gates:
+  cot_min_steps: 1.0
+  tot_min_branches: 0.0
+  aha_min_moments: 0.0

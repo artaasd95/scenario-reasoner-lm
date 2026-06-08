@@ -78,10 +78,8 @@ Simulation (θ → world → trace) vs measurement (scores, θ slices). Two path
 **Dev/CI default:** mock/smoke only; live runs require `ALLOW_LIVE_PROVIDER=1`. Until the full S5 sprint pipeline, run **unit tests** (not full CLI pipelines in CI):
 
 ```bash
-pytest tests/unit/test_scenario_simulation_runner.py \
-       tests/unit/test_goal_preservation_metrics.py \
-       tests/unit/test_scenario_measurement.py \
-       tests/integration/test_reasoning_path_audit_smoke.py -v
+pip install -e ".[dev,serving]"
+pytest -k smoke -v
 ```
 
 Optional local artifact generation (no network):
@@ -94,7 +92,28 @@ python scripts/run_scenario_measurement.py --smoke --output docs/eval/results/sc
 Docker (CPU smoke, offline):
 
 ```bash
-docker compose up enterprise-demo
+docker compose up scenario-api
+# Optional enterprise demo:
+docker compose --profile demo up enterprise-demo
+```
+
+See [docs/serving.md](docs/serving.md) and [docs/deployment.md](docs/deployment.md).
+
+## Quickstart (smoke)
+
+```bash
+pip install -e ".[dev,serving]"
+pytest -k smoke -v
+```
+
+Train with data-platform JSONL (inline generator fallback documented in [docs/data-platform.md](docs/data-platform.md)):
+
+```bash
+python scripts/build_dataset.py --config configs/data/train.yaml
+python scripts/train.py \
+  --config experiments/configs/causal_rlhf_config.json \
+  --data-config configs/data/train.yaml \
+  --output-dir experiments/results/smoke_run
 ```
 
 ## Data platform (S9)
