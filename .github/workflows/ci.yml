@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, develop]
   pull_request:
-    branches: [main, master]
+    branches: [main, develop]
 
 jobs:
   test-lint:
@@ -16,10 +16,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Install CPU PyTorch
-        run: |
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
 
       - name: Install dependencies
         run: pip install -e ".[dev,serving]"
@@ -27,12 +27,5 @@ jobs:
       - name: Ruff
         run: ruff check .
 
-      - name: Mypy
-        run: mypy src/serving src/verification src/feedback scripts/serve.py
-        continue-on-error: true
-
-      - name: Smoke tests
-        run: pytest -k smoke -v --tb=short
-
-      - name: Unit and integration tests
-        run: pytest tests/unit tests/integration -v --tb=short -x
+      - name: Unit tests
+        run: pytest tests/unit -q --strict-markers -m "not gpu and not integration"

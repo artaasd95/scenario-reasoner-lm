@@ -1,0 +1,27 @@
+site_name: scenario-reasoner-lm
+site_description: Scenario reasoning LM — training, serving, and verification
+repo_url: https://github.com/artaasd95/scenario-reasoner-lm
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: teal
+
+nav:
+  - Home: ../README.md
+  - Project structure: ../PROJECT_STRUCTURE.md
+  - Training: training.md
+  - Serving: serving.md
+  - Deployment: deployment.md
+  - LLM integration (BYOK): llm-integration.md
+  - Scenario measurement: scenario-measurability-contract.md
+  - Enterprise demo: enterprise-risk-demo.md
+
+docs_dir: docs
+strict: false
+
+markdown_extensions:
+  - admonition
+  - tables
+  - fenced_code

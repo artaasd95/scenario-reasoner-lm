@@ -1,0 +1,7 @@
+provider: ray_serve
+model_id: Qwen/Qwen3-0.6B
+base_url: http://localhost:8000
+extra:
+  num_replicas: 2
+  num_gpus_per_replica: 1
+  mock_without_cluster: true

@@ -1,0 +1,6 @@
+provider: custom
+model_id: org-internal-llm
+base_url: http://localhost:9000
+api_key_env: MY_LLM_API_KEY
+extra:
+  fallback_provider: litellm

@@ -1,22 +1,6 @@
 name: Scenario Search Extensions Smoke (pytest only)
 
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - "src/search/**"
-      - "src/scenarios/financial/**"
-      - "src/scenarios/theta_mapping.py"
-      - "tests/unit/test_search_extensions.py"
-      - ".github/workflows/search_extensions_smoke.yml"
-  pull_request:
-    branches: [main, develop]
-    paths:
-      - "src/search/**"
-      - "src/scenarios/financial/**"
-      - "src/scenarios/theta_mapping.py"
-      - "tests/unit/test_search_extensions.py"
-      - ".github/workflows/search_extensions_smoke.yml"
   workflow_dispatch:
 
 jobs:

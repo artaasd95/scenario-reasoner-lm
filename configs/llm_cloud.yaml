@@ -1,0 +1,6 @@
+provider: litellm
+model_id: gpt-4o-mini
+api_key_env: OPENAI_API_KEY
+fallback_models:
+  - claude-3-5-haiku-latest
+  - gemini/gemini-2.0-flash

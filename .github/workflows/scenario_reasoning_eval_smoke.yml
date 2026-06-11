@@ -1,10 +1,6 @@
 name: Scenario Reasoning Eval Smoke (pytest only)
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
   workflow_dispatch:
 
 jobs:

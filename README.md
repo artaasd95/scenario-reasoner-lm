@@ -1,4 +1,10 @@
+<p align="center">
+  <img src="assets/logo.png" alt="scenario-reasoner-lm logo placeholder" width="120" />
+</p>
+
 # Scenario Reasoner LM
+
+[![CI](https://github.com/artaasd95/scenario-reasoner-lm/actions/workflows/ci.yml/badge.svg)](https://github.com/artaasd95/scenario-reasoner-lm/actions/workflows/ci.yml)
 
 A training suite for open-source reasoning LLMs that learn to reason through
 structured causal and counterfactual scenarios. The repository includes scenario

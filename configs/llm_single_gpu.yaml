@@ -1,0 +1,6 @@
+provider: vllm
+model_id: Qwen/Qwen3-0.6B
+base_url: http://localhost:8000
+extra:
+  dtype: float16
+  gpu_memory_utilization: 0.9
