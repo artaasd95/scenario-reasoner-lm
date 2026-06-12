@@ -8,6 +8,7 @@ from typing import Any
 from src.llm_integration.adapters.mock_adapter import MockLLMAdapter
 from src.llm_integration.base import Completion, LLMProvider
 from src.llm_integration.config import LLMConfig
+from src.llm_integration.context import resolve_max_tokens
 
 
 class LiteLLMAdapter(LLMProvider):
@@ -32,6 +33,11 @@ class LiteLLMAdapter(LLMProvider):
         except ImportError:
             return await self._mock.complete(prompt, model_id, **kwargs)
 
+        max_tokens = resolve_max_tokens(
+            model_id,
+            config=self._config,
+            kwargs_max_tokens=kwargs.get("max_tokens"),
+        )
         started = time.perf_counter()
         last_error: Exception | None = None
         for candidate in self._models or [model_id]:
@@ -40,7 +46,7 @@ class LiteLLMAdapter(LLMProvider):
                     model=candidate,
                     messages=[{"role": "user", "content": prompt}],
                     api_key=api_key,
-                    max_tokens=int(kwargs.get("max_tokens", 256)),
+                    max_tokens=max_tokens,
                 )
                 text = response.choices[0].message.content or ""
                 usage = getattr(response, "usage", None) or {}

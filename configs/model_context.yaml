@@ -1,0 +1,29 @@
+default:
+  context_window: 8192
+  reserve_output_tokens: 256
+
+models:
+  gpt-4o-mini:
+    context_window: 128000
+    reserve_output_tokens: 1024
+  gpt-4o:
+    context_window: 128000
+    reserve_output_tokens: 2048
+  claude-3-5-haiku:
+    context_window: 200000
+    reserve_output_tokens: 1024
+  gemini-2.0-flash:
+    context_window: 1000000
+    reserve_output_tokens: 1024
+  qwen2.5:
+    context_window: 32768
+    reserve_output_tokens: 512
+  Qwen:
+    context_window: 32768
+    reserve_output_tokens: 512
+  mock:
+    context_window: 8192
+    reserve_output_tokens: 256
+  mock-local:
+    context_window: 8192
+    reserve_output_tokens: 256

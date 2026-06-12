@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 from typing import List, Optional
 
+from src.dspy_modules.filing_context import build_filing_excerpt
 from src.dspy_modules.signatures import ExtractEvidence, _require_dspy
 from src.risk.schema import EvidenceChunk
 
@@ -28,10 +29,14 @@ class ExtractRisksModule:
         chunks: List[EvidenceChunk],
         trace_callback: Optional[callable] = None,
     ) -> dict:
-        excerpt = "\n\n---\n\n".join(
-            f"[{c.chunk_id}] ({c.section_name})\n{c.quote_text}" for c in chunks
-        )
-        sections = ", ".join(sorted({c.section_name for c in chunks}))
+        assembled = build_filing_excerpt(chunks)
+        excerpt = assembled.text
+        kept_sections = {
+            c.section_name
+            for c in chunks
+            if c.chunk_id in assembled.segments_kept
+        }
+        sections = ", ".join(sorted(kept_sections))
 
         if self._predictor is not None:
             import dspy

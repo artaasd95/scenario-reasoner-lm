@@ -9,6 +9,7 @@ import httpx
 
 from src.llm_integration.base import Completion, LLMProvider
 from src.llm_integration.config import LLMConfig
+from src.llm_integration.context import resolve_max_tokens
 
 
 class OpenAICompatibleAdapter(LLMProvider):
@@ -29,10 +30,15 @@ class OpenAICompatibleAdapter(LLMProvider):
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
 
+        max_tokens = resolve_max_tokens(
+            model_id,
+            config=self._config,
+            kwargs_max_tokens=kwargs.get("max_tokens"),
+        )
         payload = {
             "model": model_id,
             "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": int(kwargs.get("max_tokens", 256)),
+            "max_tokens": max_tokens,
         }
         url = f"{self._base_url}/v1/chat/completions"
         started = time.perf_counter()
