@@ -4,6 +4,7 @@ repo_url: https://github.com/artaasd95/scenario-reasoner-lm
 
 theme:
   name: material
+  logo: assets/logo.png
   palette:
     - scheme: default
       primary: teal
