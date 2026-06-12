@@ -65,8 +65,8 @@ class PipelineRunner:
             artifacts.append(labeled)
 
         if "filter" in self.config.stages:
-            artifacts, dropped = self._filter_rows(artifacts)
-            stats.dropped = dropped
+            artifacts, filter_dropped = self._filter_rows(artifacts)
+            stats.dropped += filter_dropped
 
         if "split" in self.config.stages:
             artifacts = self._split_rows(artifacts)

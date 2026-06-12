@@ -4,12 +4,15 @@ Langfuse client wrapper with no-op fallback when credentials are absent.
 
 from __future__ import annotations
 
+import logging
 import os
 import time
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any, Dict, Generator, Optional
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -94,7 +97,8 @@ class LangfuseTracer:
                     input=inputs,
                     metadata=metadata,
                 )
-            except Exception:
+            except Exception as exc:
+                logger.warning("Langfuse span creation failed: %s", exc, exc_info=True)
                 lf_span = None
 
         try:
@@ -115,15 +119,15 @@ class LangfuseTracer:
                         metadata=record.metadata,
                         level="ERROR" if record.status == "error" else "DEFAULT",
                     )
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.warning("Langfuse span end failed: %s", exc, exc_info=True)
 
     def flush(self) -> None:
         if self._client is not None:
             try:
                 self._client.flush()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Langfuse flush failed: %s", exc, exc_info=True)
 
     @property
     def spans(self) -> list[SpanRecord]:

@@ -28,7 +28,7 @@ Example::
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,11 @@ class ModelWrapper:
     The loaded model is returned as a PEFT-wrapped ``PeftModelForCausalLM``
     with LoRA adapters targeting the attention projection layers.  The base
     model weights are kept in 4-bit NF4 quantization when ``use_qlora=True``.
+
+    Security:
+        ``trust_remote_code=True`` executes Python shipped with the HuggingFace
+        model repo. Only use ``model_name_or_path`` values you trust, or pin
+        a specific revision/commit hash in your deployment config.
 
     Args:
         model_name_or_path: HuggingFace model hub identifier or local path.
@@ -89,7 +94,7 @@ class ModelWrapper:
         self.device_map = device_map
         self.max_seq_length = max_seq_length
 
-    def load(self) -> Tuple:
+    def load(self) -> Tuple[Any, Any]:
         """
         Load and return ``(model, tokenizer)``.
 
@@ -119,6 +124,7 @@ class ModelWrapper:
             ) from exc
 
         logger.info("Loading tokenizer: %s", self.model_name_or_path)
+        # trust_remote_code runs model-repo Python — only use trusted hub IDs.
         tokenizer = AutoTokenizer.from_pretrained(
             self.model_name_or_path,
             trust_remote_code=True,

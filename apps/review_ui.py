@@ -60,5 +60,5 @@ st.subheader("Recent feedback")
 pending = store.list_by_status("pending")
 approved = store.list_by_status("approved")
 st.write(f"Pending: {len(pending)} | Approved: {len(approved)}")
-for fb in store._read_all()[-5:]:
+for fb in store.list_recent(5):
     st.code(json.dumps(fb.to_dict(), indent=2))

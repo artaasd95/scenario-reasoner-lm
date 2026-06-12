@@ -44,23 +44,11 @@ class RewardComposer:
         alpha: Weight for CoT quality bonus ``R_cot``.  Default ``0.15``.
         beta:  Weight for ToT quality bonus ``R_tot``.  Default ``0.10``.
         gamma: Weight for Aha-moment frequency bonus ``R_aha``.  Default ``0.05``.
-
-    Example::
-
-        from src.training.causal_reward import CausalRewardFunction
-        from src.training.reward_composer import RewardComposer
-
-        composer = RewardComposer(CausalRewardFunction(), alpha=0.15, beta=0.10, gamma=0.05)
-        result = composer.score(
-            prompt="...",
-            trace="Step 1: X causes Y.\\nTherefore, Y.",
-            answer="The final outcome is: Y.",
-            expected_answer="The final outcome is: Y.",
-            theta=theta,
-        )
-        print(result["R_total"])   # → float in [0, 1]
-        print(result["R_cot"])     # → CoT quality bonus
     """
+
+    _COT_STEP_SATURATION = 6
+    _TOT_BRANCH_SATURATION = 3
+    _AHA_MOMENT_SATURATION = 2
 
     def __init__(
         self,
@@ -147,6 +135,17 @@ class RewardComposer:
         thetas = thetas or [None] * n
         sample_ids = sample_ids or list(range(n))
 
+        lengths = {
+            "prompts": len(prompts),
+            "traces": len(traces),
+            "answers": len(answers),
+            "expected_answers": len(expected_answers),
+            "thetas": len(thetas),
+            "sample_ids": len(sample_ids),
+        }
+        if len(set(lengths.values())) != 1:
+            raise ValueError(f"score_batch input lengths must match: {lengths}")
+
         return [
             self.score(p, t, a, ea, th, sid)
             for p, t, a, ea, th, sid in zip(
@@ -166,7 +165,7 @@ class RewardComposer:
         cot_trace = self._cot_monitor.extract(trace, sample_id=sample_id)
         if not cot_trace.has_cot:
             return 0.0
-        step_score = min(cot_trace.step_count / 6.0, 1.0)
+        step_score = min(cot_trace.step_count / float(self._COT_STEP_SATURATION), 1.0)
         return round(step_score, 4)
 
     def _tot_reward(self, trace: str, sample_id: Any) -> float:
@@ -180,7 +179,7 @@ class RewardComposer:
         if not tot_trace.has_tot:
             return 0.0
         has_selection = any(n.is_selected for n in tot_trace.nodes)
-        branch_score = min(tot_trace.branch_count / 3.0, 1.0)
+        branch_score = min(tot_trace.branch_count / float(self._TOT_BRANCH_SATURATION), 1.0)
         return round(0.6 * branch_score + 0.4 * float(has_selection), 4)
 
     def _aha_reward(self, trace: str, sample_id: Any) -> float:
@@ -193,4 +192,4 @@ class RewardComposer:
         aha_trace = self._aha_monitor.extract(trace, sample_id=sample_id)
         if not aha_trace.has_aha:
             return 0.0
-        return min(aha_trace.moment_count / 2.0, 1.0)
+        return min(aha_trace.moment_count / float(self._AHA_MOMENT_SATURATION), 1.0)

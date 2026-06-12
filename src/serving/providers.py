@@ -1,11 +1,12 @@
-"""Scenario generation providers — mock (default) and live (gated)."""
+"""Scenario generation providers — mock (default) and gate-checked mock (live alias)."""
 
 from __future__ import annotations
 
 import os
+import warnings
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-from typing import Dict
+from typing import Dict, Optional
 from uuid import uuid4
 
 from src.serving.schemas import (
@@ -28,6 +29,10 @@ class ScenarioProvider(ABC):
     @abstractmethod
     def evaluate(self, artifact: ScenarioArtifact) -> ScenarioArtifact:
         ...
+
+    def get(self, scenario_id: str) -> ScenarioArtifact | None:
+        """Return a previously generated artifact, if the provider caches them."""
+        return None
 
 
 class MockScenarioProvider(ScenarioProvider):
@@ -84,6 +89,7 @@ class MockScenarioProvider(ScenarioProvider):
     def _verify(self, paths: list[PathRecord]) -> VerificationSummary:
         try:
             from src.verification.report import build_verification_report
+
             texts = [p.text for p in paths if p.text]
             return build_verification_report(texts)
         except ImportError:
@@ -95,26 +101,48 @@ class MockScenarioProvider(ScenarioProvider):
             return VerificationSummary(overall_score=0.5, claims=claims)
 
 
-class LiveScenarioProvider(ScenarioProvider):
-    """Live provider gated by ALLOW_LIVE_PROVIDER=1."""
+class PermissionCheckedMockProvider(ScenarioProvider):
+    """
+    Mock provider that requires ``ALLOW_LIVE_PROVIDER=1``.
+
+    Does not call a live LLM — provenance is ``gate_checked_mock`` so consumers
+  are not misled into believing output came from a paid API.
+    """
 
     def __init__(self) -> None:
         if os.environ.get("ALLOW_LIVE_PROVIDER", "0") != "1":
             raise PermissionError(
-                "Live provider requires ALLOW_LIVE_PROVIDER=1"
+                "Gate-checked mock provider requires ALLOW_LIVE_PROVIDER=1"
             )
         self._mock = MockScenarioProvider()
 
     def generate(self, request: ScenarioRequest) -> ScenarioArtifact:
         artifact = self._mock.generate(request)
-        artifact.provenance.provider = "live"
+        artifact.provenance.provider = "gate_checked_mock"
         return artifact
 
     def evaluate(self, artifact: ScenarioArtifact) -> ScenarioArtifact:
         return self._mock.evaluate(artifact)
 
+    def get(self, scenario_id: str) -> ScenarioArtifact | None:
+        return self._mock.get(scenario_id)
+
+
+# Backward-compatible alias; prefer PermissionCheckedMockProvider.
+class LiveScenarioProvider(PermissionCheckedMockProvider):
+    """Deprecated alias for :class:`PermissionCheckedMockProvider`."""
+
+    def __init__(self) -> None:
+        warnings.warn(
+            "LiveScenarioProvider is deprecated; use PermissionCheckedMockProvider. "
+            "The 'live' name does not invoke a real LLM.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__()
+
 
 def get_provider(name: str = "mock") -> ScenarioProvider:
     if name == "live":
-        return LiveScenarioProvider()
+        return PermissionCheckedMockProvider()
     return MockScenarioProvider()

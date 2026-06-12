@@ -22,7 +22,9 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
+from src.training.dpo_config import build_dpo_config
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +81,7 @@ class RLHFTrainer:
 
         try:
             import datasets as hf_datasets
-            from trl import DPOConfig, DPOTrainer
+            from trl import DPOTrainer
         except ImportError as exc:
             raise ImportError(
                 "RLHFTrainer requires 'trl>=0.8'. "
@@ -92,8 +94,12 @@ class RLHFTrainer:
         )
         hf_dataset = hf_datasets.Dataset.from_list(self.preference_data)
 
-        dpo_config = self._build_dpo_config()
-        trainer_callbacks = self._build_callbacks()
+        dpo_config = build_dpo_config(
+            self.config,
+            str(self.output_dir),
+            use_wandb=self.use_wandb,
+        )
+        trainer_callbacks, reward_cb, local_logger = self._build_callbacks()
 
         trainer = DPOTrainer(
             model=self.model,
@@ -110,7 +116,10 @@ class RLHFTrainer:
         logger.info("Starting DPO training — %d epochs", self.config.get("num_epochs", 3))
         trainer.train()
 
-        self._log_callback_outputs()
+        if reward_cb is not None and local_logger is not None:
+            agg = reward_cb.aggregate()
+            if agg:
+                local_logger.log_step(step=0, metrics=agg, prefix="callback/reward_decomposition")
 
         checkpoint_path = str(self.output_dir / "dpo_checkpoint")
         trainer.save_model(checkpoint_path)
@@ -118,19 +127,16 @@ class RLHFTrainer:
         logger.info("Checkpoint saved to: %s", checkpoint_path)
         return checkpoint_path
 
-    # ── Internals ─────────────────────────────────────────────────────────────
-
-    def _build_callbacks(self) -> list:
+    def _build_callbacks(self) -> Tuple[list, Optional[Any], Optional[Any]]:
         training_cfg = self.config.get("training", {})
         monitor = training_cfg.get("monitor_gates") or self.config.get("monitor_gates")
         if not monitor:
-            return []
+            return [], None, None
 
         from transformers import TrainerCallback
         from src.training.callbacks.reward_theta_callbacks import RewardDecompositionCallback
 
         reward_cb = RewardDecompositionCallback()
-        self._reward_callback = reward_cb
         local_logger = self.config.get("_local_logger")
 
         class _RewardLogCallback(TrainerCallback):
@@ -147,38 +153,6 @@ class RLHFTrainer:
         callbacks: list = [_RewardLogCallback()]
         if training_cfg.get("early_stop_theta_stratified"):
             from src.training.callbacks.reward_theta_callbacks import ThetaStratifiedEarlyStopCallback
-            self._theta_stop_callback = ThetaStratifiedEarlyStopCallback()
-            callbacks.append(self._theta_stop_callback)  # type: ignore[arg-type]
-        if local_logger is not None:
-            self._callback_local_logger = local_logger
-        return callbacks
 
-    def _log_callback_outputs(self) -> None:
-        reward_cb = getattr(self, "_reward_callback", None)
-        local_logger = getattr(self, "_callback_local_logger", None)
-        if reward_cb is None or local_logger is None:
-            return
-        agg = reward_cb.aggregate()
-        if agg:
-            local_logger.log_step(step=0, metrics=agg, prefix="callback/reward_decomposition")
-
-    def _build_dpo_config(self):
-        """Construct a TRL ``DPOConfig`` from the project config dict."""
-        from trl import DPOConfig
-
-        return DPOConfig(
-            output_dir=str(self.output_dir),
-            per_device_train_batch_size=self.config.get("batch_size", 4),
-            gradient_accumulation_steps=self.config.get("gradient_accumulation", 8),
-            learning_rate=self.config.get("learning_rate", 1e-4),
-            num_train_epochs=self.config.get("num_epochs", 3),
-            lr_scheduler_type=self.config.get("lr_scheduler", "cosine"),
-            warmup_ratio=self.config.get("warmup_ratio", 0.1),
-            fp16=self.config.get("fp16", False),
-            bf16=self.config.get("bf16", True),
-            logging_steps=self.config.get("logging_steps", 10),
-            save_steps=self.config.get("save_steps", 100),
-            report_to="wandb" if self.use_wandb else "none",
-            remove_unused_columns=False,
-            optim=self.config.get("optimizer", "paged_adamw_8bit"),
-        )
+            callbacks.append(ThetaStratifiedEarlyStopCallback())  # type: ignore[arg-type]
+        return callbacks, reward_cb, local_logger

@@ -24,9 +24,8 @@ def _load_apply_feedback():
 class TestFeedbackLoop:
     def test_synthetic_coherence_pipeline(self, tmp_path):
         mod = _load_apply_feedback()
-        load_feedback_incoming = mod.load_feedback_incoming
-        apply_feedback_stub = mod.apply_feedback_stub
-
+        load_feedback_jsonl = mod.load_feedback_jsonl
+        apply_feedback = mod.apply_feedback
 
         incoming = tmp_path / "incoming"
         incoming.mkdir()
@@ -38,7 +37,7 @@ class TestFeedbackLoop:
             for r in records:
                 fh.write(json.dumps(r.to_dict()) + "\n")
 
-        loaded = load_feedback_incoming(incoming)
-        result = apply_feedback_stub(loaded, sink=str(tmp_path / "preferences"))
+        loaded = load_feedback_jsonl(incoming)
+        result = apply_feedback(loaded, sink=str(tmp_path / "preferences"))
         assert result["feedback_count"] == 2
         assert result["preference_pairs"] == 1

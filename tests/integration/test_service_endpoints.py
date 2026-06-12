@@ -37,6 +37,16 @@ class TestServiceEndpoints:
         resp = client.get("/scenarios/nonexistent-id")
         assert resp.status_code == 404
 
+    def test_get_after_generate(self, client):
+        gen = client.post(
+            "/scenarios/generate",
+            json={"theta": {"domain": "physical"}, "path_type": "bounded", "n_paths": 1},
+        )
+        artifact = gen.json()
+        resp = client.get(f"/scenarios/{artifact['id']}")
+        assert resp.status_code == 200
+        assert resp.json()["id"] == artifact["id"]
+
     def test_evaluate_roundtrip(self, client):
         gen = client.post(
             "/scenarios/generate",

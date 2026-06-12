@@ -9,28 +9,7 @@ from typing import Any, Dict, List, Tuple
 logger = logging.getLogger(__name__)
 
 
-def _build_dpo_config(config: Dict[str, Any], output_dir: str, use_wandb: bool):
-    from trl import DPOConfig
-
-    return DPOConfig(
-        output_dir=output_dir,
-        per_device_train_batch_size=config.get("batch_size", 4),
-        gradient_accumulation_steps=config.get("gradient_accumulation", 8),
-        learning_rate=config.get("learning_rate", 1e-4),
-        num_train_epochs=config.get("num_epochs", 3),
-        lr_scheduler_type=config.get("lr_scheduler", "cosine"),
-        warmup_ratio=config.get("warmup_ratio", 0.1),
-        fp16=config.get("fp16", False),
-        bf16=config.get("bf16", True),
-        logging_steps=config.get("logging_steps", 10),
-        save_strategy="steps",
-        save_steps=config.get("save_steps", 100),
-        save_total_limit=config.get("save_total_limit", 3),
-        resume_from_checkpoint=config.get("resume_from_checkpoint") or None,
-        report_to="wandb" if use_wandb else "none",
-        remove_unused_columns=False,
-        optim=config.get("optimizer", "paged_adamw_8bit"),
-    )
+from src.training.dpo_config import build_dpo_config
 
 
 class UnslothBackend:
@@ -106,7 +85,14 @@ class UnslothBackend:
         out.mkdir(parents=True, exist_ok=True)
 
         hf_dataset = hf_datasets.Dataset.from_list(preference_data)
-        dpo_config = _build_dpo_config(config, str(out), use_wandb)
+        dpo_config = build_dpo_config(
+            config,
+            str(out),
+            use_wandb=use_wandb,
+            save_strategy="steps",
+            save_total_limit=config.get("save_total_limit", 3),
+            resume_from_checkpoint=config.get("resume_from_checkpoint"),
+        )
 
         callbacks = []
         training_cfg = config.get("training", {})

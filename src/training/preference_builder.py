@@ -14,9 +14,32 @@ annotation needed.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+import re
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
+
+_CONCLUSION_SPLIT_RE = re.compile(
+    r"(?i)((?:therefore|thus|hence|in conclusion|the final outcome|the answer is).+)$",
+    re.DOTALL,
+)
+
+
+def _split_trace_and_answer(candidate: str) -> Tuple[str, str]:
+    """Separate CoT trace from final answer for reward scoring."""
+    text = candidate.strip()
+    if not text:
+        return "", ""
+    match = _CONCLUSION_SPLIT_RE.search(text)
+    if match:
+        answer = match.group(1).strip()
+        trace = text[: match.start()].strip()
+        if trace:
+            return trace, answer
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+    if len(sentences) > 1:
+        return " ".join(sentences[:-1]).strip(), sentences[-1].strip()
+    return text, text
 
 
 class PreferenceBuilder:
@@ -92,17 +115,19 @@ class PreferenceBuilder:
                 f"got {len(candidates)}."
             )
 
-        scores = [
-            self.reward_composer.score(
-                prompt=prompt,
-                trace=cand,
-                answer=cand,
-                expected_answer=expected_answer,
-                theta=theta,
-                sample_id=i,
-            )["R_total"]
-            for i, cand in enumerate(candidates)
-        ]
+        scores = []
+        for i, cand in enumerate(candidates):
+            trace, answer = _split_trace_and_answer(cand)
+            scores.append(
+                self.reward_composer.score(
+                    prompt=prompt,
+                    trace=trace,
+                    answer=answer,
+                    expected_answer=expected_answer,
+                    theta=theta,
+                    sample_id=i,
+                )["R_total"]
+            )
 
         best_idx = max(range(len(scores)), key=lambda i: scores[i])
         worst_idx = min(range(len(scores)), key=lambda i: scores[i])

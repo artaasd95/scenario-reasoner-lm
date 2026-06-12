@@ -200,7 +200,7 @@ python -m pytest tests/ -v                # Everything
 - [README.md](README.md) - Main project README with quick-start
 
 **Sample Data:**
-- [data/samples/tenk/acme_corp_10k.txt](data/samples/tenk/acme_corp_10k.txt) - Bundled 10-K (1400+ lines)
+- [data/samples/tenk/acme_corp_10k.txt](data/samples/tenk/acme_corp_10k.txt) - Bundled 10-K mini-fixture (~65 lines; smoke/demo only, not a full SEC filing)
 - [data/eval/enterprise_risk_tiny.jsonl](data/eval/enterprise_risk_tiny.jsonl) - Tiny eval set (5 scenarios)
 
 **Test Fixtures:**

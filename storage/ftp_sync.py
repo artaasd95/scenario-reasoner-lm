@@ -169,7 +169,10 @@ def sync_sftp(
 
 
 def main(argv: list[str] | None = None) -> int:
-    from disk_monitor import exceeds_threshold
+    try:
+        from storage.disk_monitor import exceeds_threshold
+    except ImportError:
+        from disk_monitor import exceeds_threshold
 
     parser = argparse.ArgumentParser(description="Sync local dirs to FTP/SFTP storage.")
     parser.add_argument("--local-root", default=".", help="Repository root")

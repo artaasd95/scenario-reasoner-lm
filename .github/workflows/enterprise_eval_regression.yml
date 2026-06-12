@@ -25,7 +25,7 @@ on:
 
 jobs:
   bootstrap-eval-regression:
-    if: false  # TEMPLATE: set to true when enabling workflow_dispatch-only runs
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -57,7 +57,7 @@ jobs:
           python -m pytest tests/integration/test_enterprise_eval_regression.py -v
 
   mipro-comparison-optional:
-    if: false  # TEMPLATE: enable manually via workflow_dispatch when baseline stable
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_mipro == 'true'
     needs: bootstrap-eval-regression
     runs-on: ubuntu-latest
     timeout-minutes: 30

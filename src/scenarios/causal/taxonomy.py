@@ -16,7 +16,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass
 from itertools import product
-from typing import Dict, List, Optional, Tuple
+from typing import ClassVar, Dict, List, Optional, Tuple
 
 
 @dataclass
@@ -52,10 +52,9 @@ class CausalTheta:
     difficulty: str = "easy"
     entity_count: int = 2
 
-    # Class-level constants (not included in dataclass comparisons by default)
-    VALID_INTERVENTION_TYPES: tuple = ("direct", "confounded", "counterfactual")
-    VALID_DOMAINS: tuple = ("physical", "medical", "social", "mechanical")
-    VALID_DIFFICULTIES: tuple = ("easy", "medium", "hard")
+    VALID_INTERVENTION_TYPES: ClassVar[tuple] = ("direct", "confounded", "counterfactual")
+    VALID_DOMAINS: ClassVar[tuple] = ("physical", "medical", "social", "mechanical")
+    VALID_DIFFICULTIES: ClassVar[tuple] = ("easy", "medium", "hard")
 
     def __post_init__(self) -> None:
         if not (2 <= self.chain_length <= 8):

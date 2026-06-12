@@ -22,14 +22,6 @@ ThetaLike = Union[
     Mapping[str, Any],
 ]
 
-_THETA_KIND_KEYS = {
-    "causal": ("chain_length", "intervention_type", "domain"),
-    "game": ("action_dim", "num_stages", "action_vector"),
-    "financial_risk": ("risk_lens", "stress_regime", "filing_id"),
-    "market_making": ("reasoning_strategy_pool", "spread_regime"),
-}
-
-
 def infer_theta_kind(data: Mapping[str, Any]) -> str:
     """Infer θ family from dict keys (first match wins)."""
     if "reasoning_strategy_pool" in data or "spread_regime" in data:
@@ -43,7 +35,7 @@ def infer_theta_kind(data: Mapping[str, Any]) -> str:
         return "causal"
     if "filing_id" in data and "num_scenarios" in data:
         return "financial_risk"
-    return "causal"
+    return "unknown"
 
 
 def normalize_theta(
@@ -66,6 +58,8 @@ def normalize_theta(
 
     data = dict(theta)
     theta_kind = kind or infer_theta_kind(data)
+    if theta_kind == "unknown":
+        return None, "unrecognized_theta_schema"
     try:
         if theta_kind == "game":
             return GameTheoreticTheta.from_dict(data), None

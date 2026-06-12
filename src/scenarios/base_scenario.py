@@ -75,9 +75,12 @@ class ScenarioInstance:
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize the instance to a plain dict (JSON-serializable)."""
-        theta_dict = (
-            self.theta.__dict__ if hasattr(self.theta, "__dict__") else self.theta
-        )
+        if hasattr(self.theta, "to_dict"):
+            theta_dict = self.theta.to_dict()
+        elif hasattr(self.theta, "__dict__"):
+            theta_dict = vars(self.theta)
+        else:
+            theta_dict = self.theta
         return {
             "scenario_id": self.scenario_id,
             "theta": theta_dict,

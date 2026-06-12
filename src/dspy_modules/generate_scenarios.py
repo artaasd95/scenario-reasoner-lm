@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from src.dspy_modules.signatures import BuildScenario, GenerateHypotheses, _require_dspy
 from src.risk.enterprise_theta import EnterpriseRiskTheta
@@ -121,7 +121,7 @@ class GenerateScenariosModule:
         self,
         evidence_payload: dict,
         company_name: str = "ACME Corporation",
-        trace_callback: Optional[callable] = None,
+        trace_callback: Optional[Callable[..., Any]] = None,
     ) -> List[dict]:
         evidence_json = json.dumps(evidence_payload.get("evidence", []))
         if self._hypothesis_predictor is not None:
@@ -153,7 +153,7 @@ class GenerateScenariosModule:
         hypotheses: List[dict],
         chunks: List[EvidenceChunk],
         theta: EnterpriseRiskTheta,
-        trace_callback: Optional[callable] = None,
+        trace_callback: Optional[Callable[..., Any]] = None,
     ) -> List[EnterpriseRiskScenarioCard]:
         cards: List[EnterpriseRiskScenarioCard] = []
         chunk_by_section = {c.section_name: c for c in chunks}

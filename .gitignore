@@ -176,6 +176,9 @@ data/processed/*
 experiments/results/*
 !experiments/results/.gitkeep
 
+demo_test_output/
+final_verify_demo/
+
 # =============================================================================
 # DOCUMENTATION BUILDS
 # =============================================================================

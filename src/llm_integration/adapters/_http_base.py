@@ -47,7 +47,18 @@ class OpenAICompatibleAdapter(LLMProvider):
             response.raise_for_status()
             data = response.json()
 
-        choice = data["choices"][0]["message"]["content"]
+        choices = data.get("choices")
+        if not choices:
+            raise ValueError(
+                f"LLM API returned no choices (backend={self._backend_id}, model={model_id})"
+            )
+        first = choices[0]
+        message = first.get("message") if isinstance(first, dict) else None
+        if not message or "content" not in message:
+            raise ValueError(
+                f"LLM API choice missing message content (backend={self._backend_id})"
+            )
+        choice = message["content"]
         usage = data.get("usage", {})
         latency_ms = (time.perf_counter() - started) * 1000
         return Completion(

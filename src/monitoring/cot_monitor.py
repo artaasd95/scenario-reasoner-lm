@@ -127,11 +127,13 @@ class CoTMonitor:
         """
         steps: List[CoTStep] = []
         step_index = 0
+        seen_texts: set[str] = set()
 
         for pattern in self._step_patterns:
             for match in pattern.finditer(text):
                 step_text = match.group(1).strip() if match.lastindex else match.group(0).strip()
-                if step_text:
+                if step_text and step_text not in seen_texts:
+                    seen_texts.add(step_text)
                     steps.append(
                         CoTStep(index=step_index, text=step_text, is_conclusion=False)
                     )

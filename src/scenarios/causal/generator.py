@@ -327,7 +327,6 @@ class CausalScenarioGenerator(ScenarioBase[CausalTheta]):
             lines.append(conclusion)
 
         else:
-            # Direct causal chain reasoning
             for i, (cause, effect, verb) in enumerate(chain, start=1):
                 line = COT_STEP_TEMPLATE.format(
                     step_num=i, cause=cause, verb=verb, effect=effect

@@ -143,7 +143,9 @@ def load_preference_data(
 
 
 def _theta_grid_from_policy(config: Dict[str, Any], sampler) -> list:
-    """Build θ grid; subsample when policy theta_mix weights fewer kinds."""
+    """Build θ grid; subsample when policy theta_mix weights fewer causal kinds."""
+    import random
+
     scenario_cfg = config.get("scenario", {})
     grid = sampler.grid(
         chain_lengths=scenario_cfg.get("chain_lengths", [3, 5]),
@@ -152,9 +154,15 @@ def _theta_grid_from_policy(config: Dict[str, Any], sampler) -> list:
         difficulties=scenario_cfg.get("difficulties"),
     )
     theta_mix = config.get("theta_mix") or {}
-    if not theta_mix or theta_mix.get("causal", 1.0) >= 0.99:
+    causal_weight = float(theta_mix.get("causal", 1.0))
+    if not theta_mix or causal_weight >= 0.99:
         return grid
-    return grid
+    target = max(1, int(len(grid) * causal_weight))
+    if target >= len(grid):
+        return grid
+    seed = config.get("data", {}).get("seed", 42)
+    rng = random.Random(seed)
+    return rng.sample(grid, target)
 
 
 def build_inline_train_dataset(config: Dict[str, Any]):
