@@ -76,6 +76,18 @@ def parse_args() -> argparse.Namespace:
         help="Output JSONL file path.",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
+    parser.add_argument(
+        "--llm-provider",
+        type=str,
+        default=None,
+        help="Optional provider alias/config path to enrich reasoning traces.",
+    )
+    parser.add_argument(
+        "--llm-model-id",
+        type=str,
+        default="demo-model",
+        help="Model identifier for llm enrichment.",
+    )
     return parser.parse_args()
 
 
@@ -93,6 +105,13 @@ def main() -> None:
         seed=args.seed,
     )
     generator = CausalScenarioGenerator(seed=args.seed, sampler=sampler)
+    llm_generator = None
+    if args.llm_provider:
+        from src.llm_integration.factory import create_llm_provider_for_name
+        from src.scenarios.llm_generator import LLMEnhancedScenarioGenerator
+
+        provider = create_llm_provider_for_name(args.llm_provider)
+        llm_generator = LLMEnhancedScenarioGenerator(generator, provider, args.llm_model_id)
 
     theta_grid = sampler.grid(
         chain_lengths=args.chain_lengths,
@@ -114,9 +133,10 @@ def main() -> None:
     total = 0
     with open(output_path, "w", encoding="utf-8") as fh:
         for theta in theta_grid:
-            instances = generator.generate_batch(
-                n=args.n_per_combo,
-                theta_sampler=lambda t=theta: t,
+            instances = (
+                llm_generator.generate_batch(n=args.n_per_combo, theta_sampler=lambda t=theta: t)
+                if llm_generator is not None
+                else generator.generate_batch(n=args.n_per_combo, theta_sampler=lambda t=theta: t)
             )
             for inst in instances:
                 fh.write(json.dumps(inst.to_dict(), ensure_ascii=False) + "\n")

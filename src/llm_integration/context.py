@@ -26,7 +26,7 @@ PRIORITY_RETRIEVED = 2
 PRIORITY_HISTORY = 3
 
 
-@dataclass(slots=True)
+@dataclass
 class ContextSegment:
     name: str
     content: str
@@ -34,14 +34,14 @@ class ContextSegment:
     protected: bool = False
 
 
-@dataclass(slots=True)
+@dataclass
 class ModelContextLimits:
     context_window: int
     reserve_output_tokens: int
     max_input_tokens: int
 
 
-@dataclass(slots=True)
+@dataclass
 class AssembledContext:
     text: str
     segments_kept: list[str] = field(default_factory=list)

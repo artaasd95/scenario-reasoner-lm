@@ -47,6 +47,18 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="YAML data-platform config (e.g. configs/data/train.yaml)",
     )
+    parser.add_argument(
+        "--llm-provider",
+        type=str,
+        default=None,
+        help="Optional provider alias or config path for LLM-enhanced scenario generation.",
+    )
+    parser.add_argument(
+        "--llm-model-id",
+        type=str,
+        default="demo-model",
+        help="Model identifier used when --llm-provider is enabled.",
+    )
     return parser.parse_args()
 
 
@@ -63,6 +75,9 @@ def main() -> None:
     from src.training.artifacts import promote_checkpoint
 
     config = resolve_training_config(load_training_config(args.config))
+    if args.llm_provider:
+        config["runtime_llm_provider"] = args.llm_provider
+        config["runtime_llm_model_id"] = args.llm_model_id
 
     output_dir = Path(args.output_dir or config.get("output_dir", "experiments/results"))
     output_dir.mkdir(parents=True, exist_ok=True)

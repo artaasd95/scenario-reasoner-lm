@@ -27,6 +27,31 @@ _REGISTRY: dict[str, type[LLMProvider]] = {
     "custom": CustomAdapter,
 }
 
+_PROVIDER_CONFIG_MAP = {
+    "mock": "configs/llm_mock.yaml",
+    "stub": "configs/llm_mock.yaml",
+    "ollama": "configs/llm_ollama.yaml",
+    "vllm": "configs/llm_single_gpu.yaml",
+    "ray_serve": "configs/llm_distributed.yaml",
+    "litellm": "configs/llm_cloud.yaml",
+    "custom": "configs/llm_custom.yaml",
+}
+
+
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def create_llm_provider_for_name(provider: str) -> LLMProvider:
+    """Resolve provider alias or config path to an LLMProvider instance."""
+    path = Path(provider)
+    if path.exists():
+        return create_llm_provider(path)
+    mapped = _PROVIDER_CONFIG_MAP.get(provider.lower())
+    if mapped is None:
+        raise ValueError(f"Unknown LLM provider alias: {provider!r}")
+    return create_llm_provider(_repo_root() / mapped)
+
 
 def create_llm_provider(config_path: str | Path) -> LLMProvider:
     """Load YAML config and return the matching provider."""

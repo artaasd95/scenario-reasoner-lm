@@ -1,0 +1,7 @@
+﻿{
+    "eval_export_path":  "benchmarks/baseline_qwen3_0.6b_artifacts/metrics.json",
+    "adapter_path":  "benchmarks/baseline_qwen3_0.6b_artifacts/adapter",
+    "run_id":  "baseline_qwen3_0.6b_run_001",
+    "model_id":  "Qwen3-0.6B",
+    "resume_semantics":  "resume_from_checkpoint_supported"
+}

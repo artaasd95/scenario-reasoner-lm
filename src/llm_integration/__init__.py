@@ -11,7 +11,8 @@ from src.llm_integration.context import (
     resolve_max_tokens,
     resolve_model_limits,
 )
-from src.llm_integration.factory import create_llm_provider
+from src.llm_integration.factory import create_llm_provider, create_llm_provider_for_name
+from src.llm_integration.checkpoint_export import CheckpointExporter
 
 __all__ = [
     "AssembledContext",
@@ -22,6 +23,8 @@ __all__ = [
     "LLMProvider",
     "assemble_context",
     "create_llm_provider",
+    "create_llm_provider_for_name",
+    "CheckpointExporter",
     "estimate_tokens",
     "resolve_max_tokens",
     "resolve_model_limits",

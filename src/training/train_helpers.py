@@ -186,6 +186,17 @@ def build_inline_train_dataset(config: Dict[str, Any]):
         seed=config.get("data", {}).get("seed", 42),
         sampler=sampler,
     )
+    llm_generator = None
+    if config.get("runtime_llm_provider"):
+        from src.llm_integration.factory import create_llm_provider_for_name
+        from src.scenarios.llm_generator import LLMEnhancedScenarioGenerator
+
+        provider = create_llm_provider_for_name(str(config["runtime_llm_provider"]))
+        llm_generator = LLMEnhancedScenarioGenerator(
+            generator,
+            provider,
+            model_id=str(config.get("runtime_llm_model_id", "demo-model")),
+        )
     theta_grid = _theta_grid_from_policy(config, sampler)
     n_per_combo = scenario_cfg.get("n_per_combo", 200)
     if config.get("theta_mix") and config["theta_mix"].get("causal", 1.0) < 0.99:
@@ -193,7 +204,11 @@ def build_inline_train_dataset(config: Dict[str, Any]):
     all_instances = []
     for theta in theta_grid:
         all_instances.extend(
-            generator.generate_batch(n=n_per_combo, theta_sampler=lambda t=theta: t)
+            (
+                llm_generator.generate_batch(n=n_per_combo, theta_sampler=lambda t=theta: t)
+                if llm_generator is not None
+                else generator.generate_batch(n=n_per_combo, theta_sampler=lambda t=theta: t)
+            )
         )
     full_dataset = CausalReasoningDataset.from_scenario_instances(all_instances)
     train_dataset, _ = full_dataset.stratified_split(

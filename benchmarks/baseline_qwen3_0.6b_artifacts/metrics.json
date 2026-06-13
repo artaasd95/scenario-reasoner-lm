@@ -1,0 +1,10 @@
+﻿{
+    "test_metrics":  {
+                         "accuracy":  0.71,
+                         "cvar":  0.08,
+                         "tail_error_rate":  0.19
+                     },
+    "validation":  {
+                       "status":  "frozen"
+                   }
+}
