@@ -1,0 +1,50 @@
+# S3cmd Configuration Template
+#
+# This file shows how to configure s3cmd for use with the storage scripts.
+# DO NOT commit this file to version control if it contains real credentials.
+#
+# Setup steps:
+#   1. Install s3cmd: pip install s3cmd OR apt-get install s3cmd
+#   2. Configure s3cmd interactively: s3cmd --configure
+#      - Or copy this template, fill in your credentials, and use:
+#        s3cmd --config=<path-to-file> ls s3://<bucket>
+#
+# The storage scripts generate temporary config files on-the-fly from
+# environment variables, so you don't need to use this in production.
+# This is provided for manual testing and reference.
+
+[default]
+# Your S3-compatible endpoint
+host_base = s3.amazonaws.com
+host_bucket = %(bucket)s.s3.amazonaws.com
+
+# For non-AWS S3-compatible storage (MinIO, DigitalOcean, etc.):
+# host_base = minio.example.com
+# host_bucket = %(bucket)s.minio.example.com
+
+# Your access credentials
+access_key = YOUR_ACCESS_KEY_ID
+secret_key = YOUR_SECRET_ACCESS_KEY
+
+# Use HTTPS
+use_https = True
+
+# S3 signature version (4 for newer services, 2 for older)
+signature_version = s3v4
+
+# Enable multipart uploads for large files
+multipart_threshold = 52428800
+multipart_chunksize = 10485760
+
+# For AWS regions (optional)
+region = us-east-1
+
+# Connection retries
+connection_timeout = 30
+max_retry_delay = 300
+
+# Verbosity (0=errors, 1=info, 2=debug)
+verbosity = 1
+
+# Encoding (important for unicode filenames)
+encoding = utf-8

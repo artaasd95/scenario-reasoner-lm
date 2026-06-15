@@ -1,0 +1,153 @@
+# Docker Compose for Scenario Reasoner LM on RunPod
+#
+# Storage Strategy:
+#   /app (40GB container root)
+#     - Code, dependencies, config
+#   /workspace (95GB persistent network volume)
+#     - data/, experiments/, artifacts/, logs/
+#
+# Mount volume on RunPod pod:
+#   /workspace → mounted as persistent storage in pod
+#   Inside container, symlink to /app/data
+#
+# Environment Setup:
+#   1. Set S3 credentials in .env file (or pass to container)
+#   2. Volume mount: /workspace:/app/data
+#   3. Run orchestrate_storage.sh pipeline before training
+
+version: '3.8'
+
+services:
+  # Scenario Reasoner LM — Training (GPU Research Profile)
+  # For use on RunPod or local machine with GPU
+  scenario-train:
+    profiles: ["train"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scenario-train
+    
+    # GPU support (requires nvidia-docker)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    
+    # Storage Mounts
+    volumes:
+      # CRITICAL: Mount network volume (95GB) as /app/data
+      - ${WORKSPACE_MOUNT:-/workspace}:/app/data
+      
+      # Code and configs (from container root)
+      - ./runpod:/app/runpod:ro
+      - ./storage:/app/storage:ro
+      - ./configs:/app/configs:ro
+    
+    # Environment - S3 credentials
+    environment:
+      # S3 Configuration for data download/upload
+      - S3_ENDPOINT_URL=${S3_ENDPOINT_URL}
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_DOWNLOAD_PREFIX=${S3_DOWNLOAD_PREFIX:-datasets/scenario-v1}
+      - S3_UPLOAD_PREFIX=${S3_UPLOAD_PREFIX:-scenario-reasoner-lm}
+      
+      # Python environment
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - CUDA_VISIBLE_DEVICES=0
+      
+      # Storage paths
+      - PROJECT_ROOT=/app
+      - WORKSPACE_MOUNT=/app/data
+    
+    # Command: Run full orchestration pipeline then training
+    # 1. Download data from S3
+    # 2. Start background upload daemon
+    # 3. Run training (daemon uploads results in background)
+    # 4. Daemon continues uploading after training completes
+    command: >
+      bash -c "
+        set -euo pipefail &&
+        echo '[startup] Initializing storage pipeline...' &&
+        bash /app/storage/orchestrate_storage.sh pipeline &&
+        echo '[startup] Starting training...' &&
+        python /app/runpod/train.py &&
+        echo '[cleanup] Training complete, waiting for final uploads...' &&
+        sleep 30 &&
+        bash /app/storage/orchestrate_storage.sh daemon:stop
+      "
+    
+    # Keep container alive if training script fails
+    stdin_open: true
+    tty: true
+    
+    # Restart policy
+    restart: no  # Don't auto-restart (training finished)
+
+  # Scenario Reasoner LM — API Serving
+  scenario-api:
+    profiles: ["serve"]
+    build:
+      context: .
+      dockerfile: Dockerfile.serve
+    container_name: scenario-api
+    ports:
+      - "8000:8000"
+    environment:
+      - SCENARIO_PROVIDER=mock
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: on-failure
+
+  # Enterprise Demo — UI
+  enterprise-demo:
+    profiles: ["demo"]
+    build: .
+    container_name: enterprise-demo
+    ports:
+      - "8501:8501"
+    volumes:
+      - ${WORKSPACE_MOUNT:-/workspace}:/app/data
+      - ./artifacts:/app/artifacts
+    environment:
+      - LLM_PROVIDER=offline
+      - ENTERPRISE_FILING_ID=acme_corp_10k
+      - PYTHONUNBUFFERED=1
+    command: streamlit run src/ui/streamlit_app.py --server.address=0.0.0.0 --server.port=8501
+    restart: on-failure
+
+  # Monitoring/Storage Helper — Can run alongside training
+  # Usage: docker-compose run --rm storage-monitor
+  storage-monitor:
+    profiles: ["monitor"]
+    build: .
+    container_name: storage-monitor
+    volumes:
+      - ${WORKSPACE_MOUNT:-/workspace}:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: >
+      bash -c "
+        while true; do
+          echo '=== Storage Monitor ===' &&
+          df -h /app/data &&
+          du -sh /app/data/* 2>/dev/null &&
+          sleep 60
+        done
+      "
+    restart: on-failure
+
+# Named volumes (optional, for local development)
+# volumes:
+#   workspace-data:
+#     driver: local
