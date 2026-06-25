@@ -1,0 +1,9 @@
+# FreeLLMAPI BYOK config — credentials loaded from freellmapi.txt at runtime.
+# base_url must NOT include /v1 (adapter appends /v1/chat/completions).
+provider: custom
+model_id: gpt-oss-20b
+base_url: http://localhost:3001
+api_key_env: FREELLMAPI_KEY
+extra:
+  context_window: 8192
+  reserve_output_tokens: 512

@@ -1,0 +1,107 @@
+{
+  "schema": "byok_pipeline_test_v1",
+  "model_id": "gpt-oss-20b",
+  "config": "configs\\llm_freellm.yaml",
+  "base_url": "http://localhost:3001/v1",
+  "steps": [
+    {
+      "step": "provider_complete",
+      "status": "pass",
+      "elapsed_ms": 10792.4,
+      "result": {
+        "backend_id": "custom",
+        "model_id": "gpt-oss-20b",
+        "latency_ms": 7022.0,
+        "token_usage": {
+          "prompt_tokens": 346,
+          "completion_tokens": 230
+        },
+        "text_preview": "Step 1: The supply\u2011chain shock limits component availability and raises procurement costs, forcing production lines to slow or halt. Step 2: Production delays and higher input prices erode margins, trigger cash\u2011flow constraints, and increase the likelihood of failing to meet contractual delivery dat"
+      }
+    },
+    {
+      "step": "context_assembly",
+      "status": "pass",
+      "elapsed_ms": 11.1,
+      "result": {
+        "segments_kept": [
+          "system",
+          "goal",
+          "evidence",
+          "history"
+        ],
+        "segments_dropped": [],
+        "segments_truncated": [],
+        "estimated_tokens": 37,
+        "max_input_tokens": 7680,
+        "reserve_output_tokens": 512
+      }
+    },
+    {
+      "step": "llm_scenario_generation",
+      "status": "pass",
+      "elapsed_ms": 33350.6,
+      "result": {
+        "count": 2,
+        "instances": [
+          {
+            "prompt_preview": "You are a careful causal reasoning assistant. When answering questions about causal chains, reason step-by-step through ",
+            "answer": "No. If strong wind had not occurred, the causal chain would be broken and river overflow would NOT have happened.",
+            "reasoning_preview": "**Step\u2011by\u2011step causal analysis**\n\n1. **Normal causal chain**  \n   *A strong wind \u2192 (proximate cause) \u2192 an electrical storm \u2192 (direct consequence) \u2192 river overflow.*\n\n2. **Intervention**  \n   We set \\(",
+            "llm_model_id": "gpt-oss-20b"
+          },
+          {
+            "prompt_preview": "You are a careful causal reasoning assistant. When answering questions about causal chains, reason step-by-step through ",
+            "answer": "The final outcome is: platelet aggregation.",
+            "reasoning_preview": "**Causal reasoning trace**\n\n1. **Chronic pain \u2192 organ stress**  \n   - Chronic pain is a prolonged irritant that demands sustained physiological responses. These responses elevate metabolic activity an",
+            "llm_model_id": "gpt-oss-20b"
+          }
+        ]
+      }
+    },
+    {
+      "step": "reasoning_monitors",
+      "status": "pass",
+      "elapsed_ms": 51.0,
+      "result": {
+        "has_cot": true,
+        "has_tot": false,
+        "has_aha": false
+      }
+    },
+    {
+      "step": "goal_alignment",
+      "status": "pass",
+      "elapsed_ms": 12.1,
+      "result": {
+        "goal_overlap": 1.0,
+        "theta_constraint_match": 1.0,
+        "on_target_composite": 1.0
+      }
+    },
+    {
+      "step": "smoke_reasoning_eval",
+      "status": "pass",
+      "elapsed_ms": 69.2,
+      "result": {
+        "smoke_mode": true,
+        "provider_mode": "mock",
+        "theta_slice_count": 6,
+        "aggregate": {
+          "goal_preservation": 0.441,
+          "on_target_reasoning": 0.4,
+          "cross_scenario_coherence": 0.4872,
+          "sibling_non_contradiction": 0.6,
+          "on_target_composite": 0.8302,
+          "path_coverage": 0.8333,
+          "on_target_rate": 0.7083
+        }
+      }
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6
+  }
+}

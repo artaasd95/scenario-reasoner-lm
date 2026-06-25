@@ -161,6 +161,7 @@ id_ed25519*
 *.p12
 *.pfx
 api_keys.txt
+freellmapi.txt
 tokens.txt
 credentials.json
 secrets.json

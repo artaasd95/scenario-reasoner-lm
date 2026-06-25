@@ -1,0 +1,166 @@
+{
+  "schema": "byok_initial_results_v1",
+  "collected_at": "2026-06-25",
+  "run_type": "byok_reasoning_pipeline_smoke",
+  "scope": "inference_and_runtime_only",
+  "training_exercised": false,
+
+  "setup": {
+    "model_id": "gpt-oss-20b",
+    "provider": "custom",
+    "adapter": "OpenAICompatibleAdapter",
+    "config": "configs/llm_freellm.yaml",
+    "api_file": "freellmapi.txt",
+    "endpoint": "http://localhost:3001/v1",
+    "backend": "FreeLLMAPI (local Docker, freellmapi-freellmapi-1)",
+    "env_gates": {
+      "ALLOW_LIVE_PROVIDER": "1",
+      "LLM_PROVIDER": "custom",
+      "api_key_env": "FREELLMAPI_KEY"
+    }
+  },
+
+  "summary": {
+    "status": "pass",
+    "steps_passed": 6,
+    "steps_failed": 0,
+    "steps_total": 6,
+    "total_wall_time_ms": 44286.4,
+    "live_api_calls": 3
+  },
+
+  "pipeline_steps": [
+    {
+      "step": "provider_complete",
+      "status": "pass",
+      "elapsed_ms": 10792.4,
+      "description": "Direct chat completion via BYOK custom adapter",
+      "result": {
+        "backend_id": "custom",
+        "model_id": "gpt-oss-20b",
+        "latency_ms": 7022.0,
+        "token_usage": {
+          "prompt_tokens": 346,
+          "completion_tokens": 230,
+          "total_tokens": 576
+        },
+        "text_preview": "Step 1: The supply-chain shock limits component availability and raises procurement costs, forcing production lines to slow or halt. Step 2: Production delays and higher input prices erode margins, trigger cash-flow constraints, and increase the likelihood of failing to meet contractual delivery dat"
+      }
+    },
+    {
+      "step": "context_assembly",
+      "status": "pass",
+      "elapsed_ms": 11.1,
+      "description": "Token-budget context assembly for gpt-oss-20b",
+      "result": {
+        "segments_kept": ["system", "goal", "evidence", "history"],
+        "segments_dropped": [],
+        "segments_truncated": [],
+        "estimated_tokens": 37,
+        "max_input_tokens": 7680,
+        "reserve_output_tokens": 512
+      }
+    },
+    {
+      "step": "llm_scenario_generation",
+      "status": "pass",
+      "elapsed_ms": 33350.6,
+      "description": "LLMEnhancedScenarioGenerator enriches causal scenario reasoning traces",
+      "result": {
+        "count": 2,
+        "instances": [
+          {
+            "domain": "physical",
+            "intervention_type": "counterfactual",
+            "chain_length": 2,
+            "answer": "No. If strong wind had not occurred, the causal chain would be broken and river overflow would NOT have happened.",
+            "reasoning_preview": "**Step-by-step causal analysis**\n\n1. **Normal causal chain**  \n   *A strong wind → (proximate cause) → an electrical storm → (direct consequence) → river overflow.*\n\n2. **Intervention**  \n   We set \\(",
+            "llm_provider": "custom",
+            "llm_model_id": "gpt-oss-20b"
+          },
+          {
+            "domain": "medical",
+            "intervention_type": "direct",
+            "chain_length": 3,
+            "answer": "The final outcome is: platelet aggregation.",
+            "reasoning_preview": "**Causal reasoning trace**\n\n1. **Chronic pain → organ stress**  \n   - Chronic pain is a prolonged irritant that demands sustained physiological responses. These responses elevate metabolic activity an",
+            "llm_provider": "custom",
+            "llm_model_id": "gpt-oss-20b"
+          }
+        ]
+      }
+    },
+    {
+      "step": "reasoning_monitors",
+      "status": "pass",
+      "elapsed_ms": 51.0,
+      "description": "CoT / ToT / Aha monitors on live LLM output",
+      "result": {
+        "has_cot": true,
+        "has_tot": false,
+        "has_aha": false
+      }
+    },
+    {
+      "step": "goal_alignment",
+      "status": "pass",
+      "elapsed_ms": 12.1,
+      "description": "Goal preservation scoring on live LLM reasoning text",
+      "result": {
+        "goal_overlap": 1.0,
+        "theta_constraint_match": 1.0,
+        "on_target_composite": 1.0
+      }
+    },
+    {
+      "step": "smoke_reasoning_eval",
+      "status": "pass",
+      "elapsed_ms": 69.2,
+      "description": "Bundled fixture eval harness (mock provider, no extra API calls)",
+      "result": {
+        "smoke_mode": true,
+        "provider_mode": "mock",
+        "theta_slice_count": 6,
+        "aggregate": {
+          "goal_preservation": 0.441,
+          "on_target_reasoning": 0.4,
+          "cross_scenario_coherence": 0.4872,
+          "sibling_non_contradiction": 0.6,
+          "on_target_composite": 0.8302,
+          "path_coverage": 0.8333,
+          "on_target_rate": 0.7083
+        }
+      }
+    }
+  ],
+
+  "scenario_demo": {
+    "script": "scripts/scenario_llm_generation_demo.py",
+    "adapter": "configs/llm_freellm.yaml",
+    "model_id": "gpt-oss-20b",
+    "count": 2,
+    "context": "BYOK pipeline test",
+    "output": "demo_test_output/scenario_llm_demo.jsonl",
+    "status": "pass"
+  },
+
+  "findings": [
+    "gpt-oss-20b responds correctly through the custom OpenAI-compatible BYOK adapter on local FreeLLMAPI.",
+    "LLM-enhanced scenario generation preserves causal answers while rewriting reasoning traces with clearer step-by-step structure.",
+    "CoT monitor detects chain-of-thought patterns in live model output; ToT and Aha were not triggered on the supply-chain probe prompt.",
+    "Goal alignment composite scored 1.0 on the live connectivity probe against an enterprise supply-chain goal.",
+    "Smoke reasoning eval runs offline on bundled fixtures (provider_mode=mock) and remains the baseline for fixture metrics."
+  ],
+
+  "limitations": [
+    "scenario_reasoning_batch does not yet route live BYOK calls; only LLMEnhancedScenarioGenerator uses the provider.",
+    "Training pipeline was not exercised in this run.",
+    "API credentials are stored in gitignored freellmapi.txt; do not commit."
+  ],
+
+  "artifacts": {
+    "detailed_report": "artifacts/byok_pipeline_test/byok_pipeline_report.json",
+    "scenario_demo_output": "demo_test_output/scenario_llm_demo.jsonl",
+    "test_harness": "scripts/run_byok_pipeline_test.py"
+  }
+}
